@@ -1,0 +1,166 @@
+<div class="layui-fluid">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-row layui-col-space15">
+        <div class="layui-col-md3">
+          <div class="layui-card">
+            <div class="layui-card-body">
+              未领取：<span id="caKeyStatus-01">0</span>
+            </div>
+          </div>
+        </div>
+        <div class="layui-col-md3">
+          <div class="layui-card">
+            <div class="layui-card-body">
+              已领取：<span id="caKeyStatus-02">0</span>
+            </div>
+          </div>
+        </div>
+        <div class="layui-col-md3">
+          <div class="layui-card">
+            <div class="layui-card-body">
+              标记丢失：<span id="caKeyStatus-03">0</span>
+            </div>
+          </div>
+        </div>
+        <div class="layui-col-md3">
+          <div class="layui-card">
+            <div class="layui-card-body">
+              离职归还：<span id="caKeyStatus-04">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="layui-col-md12">
+      <div class="layui-row layui-col-space15">
+        <div class="layui-col-md8">
+          <div class="layui-row layui-col-space15">
+            <div class="layui-col-md12">
+              <div class="layui-card">
+                <div class="layui-card-header">Key资产办理统计图</div>
+                <div class="layui-card-body">
+                  <div id="echartsMain1" style="height:350px;"></div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        <div class="layui-col-md4">
+          <div class="layui-row layui-col-space15">
+            <div class="layui-col-md12">
+              <div class="layui-card">
+                <div class="layui-card-header">快捷入口</div>
+                <div class="layui-card-body">
+                  <div class="layui-row layui-col-space5" style="text-align: center;">
+                      <div class="layui-col-sm6">
+                        <div>
+                            <a href="http://47.100.121.92:8000/certApp/" class="layui-btn layui-btn-normal" target="_blank">证书数量统计</a>
+                        </div>
+                      </div>
+                      <div class="layui-col-sm6">
+                        <div>
+                            <a href="http://47.100.121.92:8000/certApp/" class="layui-btn layui-btn-normal" target="_blank">证书状态统计</a>
+                        </div>
+                      </div>
+                    <!--    
+                    <div class="layui-col-xs6 layui-col-sm6 layui-col-md4">
+                      <div style="height:75px;  background-color:#ccc;"></div>
+                    </div>
+                    <div class="layui-col-xs6 layui-col-sm6 layui-col-md4">
+                      <div style="height:75px;  background-color:#ccc;"></div>
+                    </div>
+                    <div class="layui-col-xs4 layui-col-sm12 layui-col-md4">
+                      <div style="height:75px;  background-color:#ccc;"></div>
+                    </div>
+                    <div class="layui-col-xs4 layui-col-sm7 layui-col-md8">
+                      <div style="height:75px;  background-color:#ccc;"></div>
+                    </div>
+                    <div class="layui-col-xs4 layui-col-sm5 layui-col-md4">
+                      <div style="height:75px;  background-color:#ccc;"></div>
+                    </div>
+                    -->
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="layui-col-md12">
+              <div class="layui-card">
+                <div class="layui-card-header">版本信息</div>
+                <div class="layui-card-body">
+                  <table class="layui-table">
+                    <colgroup>
+                      <col width="150">
+                      <col>
+                    </colgroup>
+                    <tbody>
+                      <tr>
+                        <td>版本号</td>
+                        <td>v1.0.0</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  layui.config({
+    base: './js/'
+  }).use(['jquery', 'table', 'echarts'], function () {
+    var $ = layui.jquery,
+      layer = layui.layer,
+      table = layui.table;
+     $.post("./userCakey/countByStatus",function(resp){
+    	 if(resp.code==0){
+    		 $.each(resp.data,function(index,oneRec){
+    			 var caKeyStatusId='caKeyStatus-'+oneRec.status;
+    			 $('#'+caKeyStatusId).html(oneRec.total);
+    		 })
+    	 }
+     });
+     
+     var myChart1 = echarts.init(document.getElementById("echartsMain1"));
+     $.post("./cakeyOrder/indexReportJSON",function(resp){
+    	 var defaultOption = {
+	   	      tooltip: {
+	   	        trigger: 'axis',
+	   	        axisPointer: {
+	   	          type: 'cross',
+	   	          label: {
+	   	            backgroundColor: '#6a7985'
+	   	          }
+	   	        }
+	   	      },
+	   	      toolbox: {
+	   	        feature: {
+	   	          saveAsImage: {}
+	   	        }
+	   	      },
+	   	      grid: {
+	   	        left: '3%',
+	   	        right: '4%',
+	   	        bottom: '3%',
+	   	        containLabel: true
+	   	      }
+	   	 };
+    	 
+    	 $.extend(defaultOption,resp);
+    	 myChart1.setOption(defaultOption, true);
+     });
+     
+     $(window).on('resize', function () {
+    	 myChart1.resize();
+     });     
+
+  });
+</script>
+<style scoped>
+</style>

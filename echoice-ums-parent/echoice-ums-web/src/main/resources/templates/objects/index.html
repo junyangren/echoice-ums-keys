@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>统一认证权限</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="renderer" content="webkit"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/> 
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="cache-control" content="no-cache">
+    <meta http-equiv="expires" content="0">   
+    <link th:replace="fragments/css"></link>
+    <link rel="stylesheet" th:href="@{/component/ztree/css/zTreeStyle/zTreeStyle.css}" /> 
+    
+</head>
+<body>
+    <div class="layui-fluid" style="margin-top: 12px;">
+      <div class="layui-row">
+        <div class="layui-col-xs12">
+          <div class="layui-card">
+            <div class="layui-card-header">资源操作管理-> 资源管理
+            </div>
+            <div class="layui-card-body">
+                <div class="layui-row">
+                  <div class="layui-col-xs3" style="max-height:400px;overflow: auto">
+                    <ul id="menuTreeId" class="ztree"></ul>
+                  </div>
+                  <div class="layui-col-xs9">          
+                    <table id="ecTable" lay-filter="ecTable"></table>                
+                  </div>
+                </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<script th:replace="fragments/scripts"></script>
+<script type="text/javascript" th:src="@{/component/ztree/js/jquery.ztree.all.js}"></script>
+<script type="text/html" id="ecColTool">
+    <a class="layui-btn layui-btn-xs" lay-event="detail">查看</a>
+    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+
+<script type="text/html" id="ecToolbar">
+  <div class="layui-btn-container">
+    <button class="layui-btn layui-btn-sm" lay-event="add"><i class="layui-icon layui-icon-add-1"></i>新增</button>
+    <button class="layui-btn layui-btn-sm" lay-event="batchDel"><i class="layui-icon layui-icon-delete"></i>删除</button>
+    <button class="layui-btn layui-btn-sm" lay-event="search"><i class="layui-icon">&#xe615;</i>查询</button>
+    <button class="layui-btn layui-btn-sm" lay-event="assignRemove"><i class="layui-icon layui-icon-link"></i>分配移除操作</button>
+  </div>
+</script>
+
+<script type="text/html" id="statusTpl">
+  {{#  if(d.status === 'y'){ }}
+    <span style="color: #009688;">启用</span>
+  {{#  } else { }}
+    <span style="color: #FF5722;">禁用</span>
+  {{#  } }}
+</script>
+    
+<script type="text/html" id="statusTpl1">
+   <input type="checkbox" name="status" value="{{d.status}}" lay-skin="switch" lay-text="启用|禁用" lay-filter="status" {{ d.status == 'y' ? 'checked' : '' }}>       
+</script>	
+<script type="text/javascript">
+
+    layui.config({
+        base: ecApp.context+'js/'
+    }).use(['jquery','layer', 'form','table','laytpl'], function(){
+    var $ = jQuery,
+    layer = layui.layer,
+    table = layui.table,
+    form = layui.form,
+    laytpl=layui.laytpl;
+
+    var tableIns=table.render({
+        method: 'post',
+        limit: 20,
+        even:true,
+        elem: '#ecTable',
+        height: 'full-100',
+        toolbar: '#ecToolbar',
+        defaultToolbar: ['filter','exports'],
+        done: function () {
+          //$('#ecgrid_hash').next().css('height','auto');
+        },request: {
+            pageName: 'page',
+            limitName: 'rows'
+        },
+        response: {
+            countName: 'total',
+            dataName: 'rows'
+        },
+        url: './searchJSON', //数据接口
+        page: true, //开启分页
+        cols: [
+          [ //表头
+        	{type:'checkbox',fixed: 'left'}  
+            ,{field: 'objId',title: 'ID',width: 80,align:'center',sort: false}
+            ,{field: 'alias',title: '标识',width: 180}
+            ,{field: 'name',title: '名称',width: 150,sort: false}
+            ,{field: 'type',title: '类型',width: 120,sort: false}
+            ,{field: 'parentName',title: '父名称',width: 150}
+            ,{field: 'status',title: '状态',width: 60,align:'center',templet: '#statusTpl'}
+            ,{field: 'opTime',title: '操作时间',width: 120,align:'center'},
+            ,{field: 'taxis',title: '排序',width: 80,align:'center',sort: false}
+            ,{fixed: 'right',width: 180,align: 'center',toolbar: '#ecColTool'}
+          ]
+        ]
+      });
+
+    ecApp.openForm=function(vtitle,vBtn,selId){
+        layer.open({
+            title:vtitle,
+            type: 1,
+            anim: 3,
+            fixed:true,
+            maxmin:true,
+            offset: 'r',
+            area: ['60%', '100%'],
+            content: $('#editFormTp'),
+            success: function(layero, index){
+                if(vBtn){
+                    $('#btnGroup').show();
+                }else{
+                    $('#btnGroup').hide();
+                }
+                
+                if(selId){//detail、edit
+                    $.get('./edit?objId='+selId,function(respData){
+                        form.val("ec-edit-form",respData.data);                 
+                    });
+                }else{//add
+                	ecApp.resetForm();                  
+                }
+
+            },
+            cancel: function(index, layero){
+            	$(this.content).hide();
+            }
+        });     
+    }    
+    
+    //监听顶部工具条
+    table.on('toolbar(ecTable)', function(obj){
+    	  var checkStatus = table.checkStatus(obj.config.id);
+    	  switch(obj.event){
+    	    case 'add':
+    	    	ecApp.openForm('添加',true,null);
+    	    break;
+    	    case 'batchDel':
+    	      if(checkStatus.data&&checkStatus.data.length>0){
+    	    	  var selRowsIdArr=[];
+    	    	  $.each(checkStatus.data,function(index,oneRec){
+    	    		  selRowsIdArr[selRowsIdArr.length]=oneRec.objId;
+    	    	  });
+    	    	  
+    	    	  ecApp.delRecs(selRowsIdArr);    	    	  
+    	      }
+    	      
+    	    break;
+    	    case 'search':
+    	        layer.open({
+    	            title:'查询',
+    	            type: 1,
+    	            anim: 3,
+    	            fixed:true,
+    	            maxmin:true,
+    	            offset: 'r',
+    	            area: ['350px', '100%'],
+    	            content: $('#searchFormTp'),
+    	            success: function(layero, index){
+    	            	
+    	            },
+    	            cancel: function(index, layero){ 
+    	            	$(this.content).hide();
+    	            }
+    	        });
+    	    	
+    	    break;
+    	    
+    	    case 'assignRemove':
+    	    	if(checkStatus.data&&checkStatus.data.length>0){
+                    layer.open({
+                        title:'分配移除资源操作',
+                        type: 1,
+                        anim: 3,
+                        fixed:true,
+                        maxmin:true,
+                        offset: 'r',
+                        area: ['450px', '100%'],
+                        content: $('#accssModeTableTp'),
+                        success: function(layero, index){
+                            //加载操作table
+                            var vObjId='';
+                            if(checkStatus.data.length==1){
+                            	vObjId=checkStatus.data[0].objId;
+                            }
+                            if(!ecApp.accessModeTableIns){
+                                ecApp.accessModeTableIns=table.render({
+                                    method: 'post',
+                                    limit: 500,
+                                    even:true,
+                                    elem: '#ecAccssModeTable',
+                                    height: 'full-130',
+                                    done: function () {
+                                      //$('#ecgrid_hash').next().css('height','auto');
+                                    },request: {
+                                        pageName: 'page',
+                                        limitName: 'rows'
+                                    },
+                                    response: {
+                                        countName: 'total',
+                                        dataName: 'rows'
+                                    },
+                                    url: '../operator/findAccessByObjID',
+                                    where: {objId:vObjId},		
+                                    page: false, //开启分页
+                                    cols: [
+                                      [ //表头
+                                        {type:'checkbox',fixed: 'left'}  
+                                        ,{field: 'accssId',title: 'ID',width: 80,align:'center',sort: false}
+                                        ,{field: 'alias',title: '标识',width: 150}
+                                        ,{field: 'name',title: '名称',width: 150,sort: false}
+                                      ]
+                                    ]
+                                  });
+                            }else{
+                            	ecApp.accessModeTableIns.reload({where: {'objId':vObjId}});
+                            }
+                        },
+                        cancel: function(index, layero){ 
+                            $(this.content).hide();
+                        },
+                        btnAlign: 'l',
+                        btn: ['分配', '移除'],
+                        yes:function(index, layero){
+                        	ecApp.assignAccssMode(checkStatus,'assign');
+                        	return false
+                        },
+                        btn2:function(index, layero){
+                        	ecApp.assignAccssMode(checkStatus,'remove');
+                        	return false
+                        }
+                    });
+    	    	}else{
+    	    		layer.msg('请选择要操作的记录');
+    	    	}
+    	    break;
+    	  };
+    	});
+    
+    //监听记录行工具条
+    table.on('tool(ecTable)', function(obj){
+      var data = obj.data;
+      if(obj.event === 'detail'){
+    	  ecApp.openForm('查看',false,data.objId);
+      } else if(obj.event === 'del'){
+    	  var selRowsIdArr=[];
+          selRowsIdArr[0]=data.objId;
+          ecApp.delRecs(selRowsIdArr);
+      } else if(obj.event === 'edit'){
+    	  ecApp.openForm('编辑',true,data.objId); 
+      }
+    });
+    
+    //监听提交表单
+    form.on('submit(subFormBtn)', function(data){
+      var sfJson=data.field;
+      var rnd=parseInt(Math.random()*1000000);
+      sfJson.rnd=rnd;
+      $.post("./save",sfJson,function(resp){
+          if(resp){
+        	  layer.msg(resp.msg);
+              if(resp.code==0){
+            	  $('input[name="objId"]').val(resp.data.objId);
+            	  ecApp.refreshTreeAndTable();
+              }
+          }else{
+              layer.msg('操作失败');
+          }
+          
+      },"json");
+              
+      return false;
+    }); 
+
+    //监听查询表单
+    form.on('submit(searchFormBtn)', function(data){
+        var vWhere=data.field;
+        var rnd=parseInt(Math.random()*1000000);
+        vWhere.rnd=rnd;
+        tableIns.reload({where:vWhere});                
+        return false;
+      });
+    
+    $('#continueAdd').click(function(){
+    	ecApp.resetForm();
+    });
+    
+
+    //加载节点树    
+    var setting = {
+            async: {
+                enable: true,
+                url:"./tree",
+                autoParam:["id", "name"]
+            },
+            edit:{
+            	drag:{
+            		isMove:true,
+            		prev:true,
+            		inner:true,
+            		next:true
+            	},
+            	enable: true,
+            	showRemoveBtn: false,
+            	showRenameBtn:false,
+            	removeTitle : "删除",
+            	renameTitle : '编辑'
+            },
+            callback : {
+                onClick : function(event, treeId, treeNode, clickFlag){
+                	    ecApp.ztree.currentNode=treeNode;
+                        if (treeNode.isParent) {
+                            var sfJson={};
+                            sfJson.parentId=treeNode.id;
+                            var rnd=parseInt(Math.random()*10000);
+                            sfJson.rnd=rnd;
+                            tableIns.reload({where:sfJson});
+                        }
+                },
+                onRightClick:function(event, treeId, treeNode){
+                    event.preventDefault();
+                },
+                onDrop:function(event, treeId, treeNodes, targetNode, moveType){
+                	var sfJson={};
+                	sfJson.dragId=treeNodes[0].id;
+                	sfJson.targetId=targetNode.id;
+                    $.post("./drag",sfJson,function(resp){
+                        if(resp){
+                            layer.msg(resp.msg);
+                        }else{
+                            layer.msg('操作失败');
+                        }
+                        
+                    },"json");
+                },
+                onAsyncSuccess:function(event, treeId, treeNode, msg){
+                	if(treeNode===undefined){
+                		var treeObj = $.fn.zTree.getZTreeObj(treeId);
+                        var rootNode=treeObj.getNodeByParam("id", -1, null);
+                        treeObj.expandNode(rootNode, true, true, true);
+                	}
+                }
+            }   
+    };
+    
+    var treeObj=jQuery.fn.zTree.init($("#menuTreeId"), setting);
+    
+    ecApp.resetForm=function(){
+        $('#ec-edit-form').get(0).reset();
+        var parentNode=null;
+        if(ecApp.ztree.currentNode){
+            parentNode=ecApp.ztree.currentNode;
+        }else{
+            parentNode=treeObj.getNodeByParam("id", -1, null);
+        }
+        
+        form.val("ec-edit-form",{type:'ecums',
+            parentId:parentNode.id,
+            parentName:parentNode.name,
+            status:'y',
+            taxis:9999}); 
+    }
+    
+    ecApp.delRecs=function(selRowsIdArr){
+        var idsStr=JSON.stringify(selRowsIdArr);
+        layer.confirm('您确认要删除ID号为：'+idsStr+" 的记录吗？", function(index){
+            layer.close(index);
+            var sfJson={};
+            var rnd=parseInt(Math.random()*10000);
+            sfJson.rnd=rnd;
+            sfJson.selIds=idsStr;
+            $.post('./del',sfJson,function(resp){
+                layer.alert(resp.msg);
+                if(resp.code==0){
+                    ecApp.refreshTreeAndTable();
+                }
+            },"json");
+          
+        });
+    }
+    
+    ecApp.refreshTreeAndTable=function(){
+    	var vWhere={};
+    	if(treeObj){
+            var sNodes = treeObj.getSelectedNodes();
+            var refreshNode=null;
+            if (sNodes.length>0) {
+            	vWhere.parentId=sNodes[0].id;
+                var isParent = sNodes[0].isParent;
+                if(isParent){
+                    refreshNode=sNodes[0];
+                }else{
+                    refreshNode=sNodes[0].getParentNode();
+                }
+            }
+            
+            treeObj.reAsyncChildNodes(refreshNode, "refresh");
+    	}
+        tableIns.reload({where:vWhere});
+    }
+    
+    ecApp.assignAccssMode=function(objCheckStatus,opType){
+        var accssModeCheckStatus = table.checkStatus('ecAccssModeTable'); 
+        if(accssModeCheckStatus.data&&accssModeCheckStatus.data.length>0){
+        	
+            var selRowsIdArr=[];
+            $.each(objCheckStatus.data,function(index,oneRec){
+                selRowsIdArr[selRowsIdArr.length]=oneRec.objId;
+            });
+            
+            var accessModeselRowsIdArr=[];
+            $.each(accssModeCheckStatus.data,function(index,oneRec){
+                accessModeselRowsIdArr[accessModeselRowsIdArr.length]=oneRec.accssId;
+            });
+            
+            var objIdsStr=JSON.stringify(selRowsIdArr);
+            var accssIdsStr=JSON.stringify(accessModeselRowsIdArr);
+
+            var sfJson={};
+            sfJson.objIds=objIdsStr;
+            sfJson.accssIds=accssIdsStr;
+            var rnd=parseInt(Math.random()*1000000);
+            sfJson.rnd=rnd;
+            $.post('../operator/'+opType,sfJson,function(resp){
+                layer.alert(resp.msg);
+            },"json");
+        }
+    }
+    
+});
+</script>     
+</body>
+<div id="editFormTp" style="display:none;">
+   <div style="width: 98%;padding-top: 12px">
+    <form id="ec-edit-form" class="layui-form" lay-filter="ec-edit-form" action="">
+      <div class="layui-form-item">
+        <label class="layui-form-label">ID</label>
+        <div class="layui-input-inline">
+          <input type="text" name="objId" readonly="true" placeholder="系统生成" autocomplete="off" class="layui-input">
+          <input type="hidden" name="parentId">
+        </div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">父节点名称</label>
+        <div class="layui-input-block">
+          <input type="text" name="parentName" readonly="true" autocomplete="off" class="layui-input">
+        </div>
+      </div>      
+      <div class="layui-form-item">
+        <label class="layui-form-label">标识</label>
+        <div class="layui-input-block">
+          <input type="text" name="alias" maxlength="64" required lay-verify="required" placeholder="请输入标识" autocomplete="off" class="layui-input">
+        </div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">名称</label>
+        <div class="layui-input-block">
+          <input type="text" name="name" maxlength="64" required lay-verify="required" placeholder="请输入名称" autocomplete="off" class="layui-input">
+        </div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">类型</label>
+        <div class="layui-input-inline">
+          <input type="text" name="type" maxlength="32" required lay-verify="required" placeholder="请输入类型" autocomplete="off" class="layui-input">
+        </div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">状态</label>
+        <div class="layui-input-inline">
+          <select name="status" lay-verify="required">
+            <option value="y">启用</option>
+            <option value="n">禁用</option>
+          </select>
+        </div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">排序</label>
+        <div class="layui-input-inline">
+          <input type="number" name="taxis" value="9999" maxlength="8" required lay-verify="required|number" placeholder="请输入排序值" autocomplete="off" class="layui-input">
+        </div>
+      </div>      
+      <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">备注</label>
+        <div class="layui-input-block">
+          <textarea name="note" placeholder="请输入备注" class="layui-textarea"></textarea>
+        </div>
+      </div>      
+      <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">备注2</label>
+        <div class="layui-input-block">
+          <textarea name="note2" placeholder="请输入备注" class="layui-textarea"></textarea>
+        </div>
+      </div>
+      <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">备注3</label>
+        <div class="layui-input-block">
+          <textarea name="note3" placeholder="请输入备注" class="layui-textarea"></textarea>
+        </div>
+      </div>
+      <div class="layui-form-item" id="btnGroup">
+        <div class="layui-input-block">
+          <button class="layui-btn" lay-submit lay-filter="subFormBtn">提交</button>
+          <button class="layui-btn" type="button" id="continueAdd">继续新增</button>
+        </div>
+      </div>
+    </form>
+   </div> 
+ </div>
+ 
+ <div id="searchFormTp" style="display:none;">
+   <div style="width: 98%;padding-top: 12px">
+    <form id="ec-search-form" class="layui-form" lay-filter="ec-search-form" action="">      
+      <div class="layui-form-item">
+        <label class="layui-form-label">标识</label>
+        <div class="layui-input-block">
+          <input type="text" name="alias" maxlength="64" placeholder="请输入标识" autocomplete="off" class="layui-input">
+        </div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">名称</label>
+        <div class="layui-input-block">
+          <input type="text" name="name" maxlength="64" placeholder="请输入名称" autocomplete="off" class="layui-input">
+        </div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">类型</label>
+        <div class="layui-input-inline">
+          <input type="text" name="type" maxlength="32" placeholder="请输入类型" autocomplete="off" class="layui-input">
+        </div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">状态</label>
+        <div class="layui-input-inline">
+          <select name="status">
+            <option value=""></option>
+            <option value="y">启用</option>
+            <option value="n">禁用</option>
+          </select>
+        </div>
+      </div>
+      <div class="layui-form-item" id="btnGroup">
+        <div class="layui-input-block">
+          <button class="layui-btn" lay-submit lay-filter="searchFormBtn">查询</button>
+          <button type="reset" class="layui-btn">重置</button>
+        </div>
+      </div>
+    </form>
+   </div> 
+ </div>
+ 
+ <div id="accssModeTableTp" style="display:none;">
+ <div style="padding: 0 12px;">
+     <table id="ecAccssModeTable" lay-filter="ecAccssModeTable"></table>
+ </div>    
+ </div>  
+</html>

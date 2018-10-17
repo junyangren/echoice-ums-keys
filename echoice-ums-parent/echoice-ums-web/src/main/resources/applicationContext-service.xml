@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd" default-autowire="byName">
+	
+	<bean id="configBean" class="org.echoice.ums.config.ConfigBean">
+    	<property name="auth" value="${ecums.isAuth}"></property>
+    	<property name="authObject" value="${ecums.authObject}"></property>
+    	<property name="authAccessMode" value="${ecums.authAccessMode}"></property>
+    	<property name="authSysMgrRole" value="${ecums.authSysMgrRole}"></property>
+    	<property name="groupModeType" value="${ecums.groupModeType}"></property>
+    	<property name="groupRoleParentAlias" value="${ecums.groupRoleParentAlias}"></property>
+    	<property name="levelRoleShow" value="${ecums.levelRoleShow}"></property>
+    	<property name="groupAliasCreate" value="${ecums.groupAliasCreate}"></property>
+    	<property name="syncGroupPath" value="${ecums.syncGroupPath}"></property>
+		<property name="uploadPath" value="${ecums.uploadPath}"></property>
+    	<property name="urlToObjMap">
+    		<map>
+    			<entry key="opAccssMode.do" value="${ecums.console.menu.accssMode}"></entry>
+    			<entry key="opObjects.do" value="${ecums.console.menu.objects}"></entry>
+    			<entry key="opOperator.do" value="${ecums.console.menu.objects}"></entry>
+    			<entry key="opGroup.do" value="${ecums.console.menu.group}"></entry>
+    			<entry key="opGroupAssignmen.do" value="${ecums.console.menu.group}"></entry>
+    			<entry key="opUser.do" value="${ecums.console.menu.user}"></entry>
+    			<entry key="opUsersAssignmen.do" value="${ecums.console.menu.user}"></entry>
+    			<entry key="opRole.do" value="${ecums.console.menu.role}"></entry>
+    			<entry key="opPermission.do" value="${ecums.console.menu.role}"></entry>
+    		</map>
+    	</property>
+    	<property name="objAccessModeMap">
+    		<map>
+    			<entry key="save" value="1"></entry>
+    			<entry key="del" value="1"></entry>
+    			<entry key="assignRole" value="1"></entry>
+    			<entry key="removeRole" value="1"></entry>
+    			<entry key="drag" value="1"></entry>
+    			<entry key="assignPermission" value="1"></entry>
+    			<entry key="removePermission" value="1"></entry>
+    			<entry key="assignObj" value="1"></entry>
+    			<entry key="removeObj" value="1"></entry>
+    			<entry key="assignGroup" value="1"></entry>
+    			<entry key="removeAssignGroup" value="1"></entry>
+    			<entry key="removeRoleAssignUser" value="1"></entry>
+    			<entry key="removePermissionByPaId" value="1"></entry>
+    		</map>
+    	</property>
+	</bean>
+	
+	<bean id="umsClientDao" class="org.echoice.ums.dao.impl.UmsClientDaoImpl"></bean>
+	
+	<bean id="validPermissionForUmsService" class="org.echoice.ums.service.impl.ValidPermissionForUmsServiceImpl"></bean>	
+	
+	<bean id="dialect" class="java.lang.String">
+		<constructor-arg value="${app.hibernate.dialect}"/>
+	</bean>
+	
+	<bean id="appPluginDao" class="org.echoice.ums.dao.impl.AppPluginDaoImpl"></bean>
+	
+	<bean id="delUserForTaskCheckCmd" class="org.echoice.ums.plugins.DelUserForTaskCheckCmd"></bean>
+	
+	<bean id="groupUmsCheckCmd" class="org.echoice.ums.plugins.GroupUmsCheckCmd"></bean>
+	
+	<bean id="groupStorageCheckCmd" class="org.echoice.ums.plugins.GroupStorageCheckCmd"></bean>
+
+	<bean id="appPluginService" class="org.echoice.ums.service.AppPluginService">
+		<property name="userFilterList">
+			<list>
+				<!--<ref bean="delUserForTaskCheckCmd" />-->
+			</list>
+		</property>
+		<property name="groupFilterList">
+			<list>
+				<ref bean="groupUmsCheckCmd" />
+				<!-- <ref bean="groupStorageCheckCmd"/> -->
+			</list>		
+		</property>
+	</bean>
+		
+	<bean id="springContextHolder" class="org.echoice.modules.spring.SpringContextHolder"></bean>
+</beans>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>[[#{ums.app.name}]]</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="renderer" content="webkit"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/> 
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="cache-control" content="no-cache">
+    <meta http-equiv="expires" content="0">   
+    <link th:replace="fragments/css" />
+    <link rel="stylesheet" th:href="@{/component/kitadmin/css/login.css}">
+</head>
+<body>
+
+  <div class="kit-login">
+    <div class="kit-login-bg"></div>
+    <div class="kit-login-wapper">
+      <h2 class="kit-login-slogan">欢迎使用 <br> [[#{ums.app.name}]]</h2>
+      <div class="kit-login-form">
+        <h4 class="kit-login-title">登录</h4>
+        <form class="layui-form" method="post">
+          <div class="kit-login-row">
+            <div class="kit-login-col">
+              <i class="layui-icon">&#xe612;</i>
+              <span class="kit-login-input">
+                <input type="text" name="loginName" style="font-size: 18px;" autocomplete="false" lay-verify="required" placeholder="请输入用户名" />
+              </span>
+            </div>
+            <div class="kit-login-col"></div>
+          </div>
+          <div class="kit-login-row">
+            <div class="kit-login-col">
+              <i class="layui-icon">&#xe64c;</i>
+              <span class="kit-login-input">
+                 <input type="password" name="password" style="font-size: 18px;" lay-verify="required" placeholder="请输入密码" />
+              </span>
+            </div>
+            <div class="kit-login-col"></div>
+          </div>
+          <!--  
+          <div class="kit-login-row">
+            <div class="kit-login-col">
+              <input type="checkbox" name="rememberMe" value="true" title="记住帐号" lay-skin="primary">
+            </div>
+          </div>
+          -->
+          <div class="kit-login-row">
+            <button class="layui-btn kit-login-btn" lay-submit="submit" lay-filter="login_hash">登录</button>
+          </div>
+          <div class="kit-login-row" style="margin-bottom:0;">
+            <div id="msgTip" style="text-align: center;color: red;"></div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div> 
+
+<script th:replace="fragments/scripts"></script>
+<script type="text/javascript">
+
+    layui.config({
+        base: ecApp.context+'js/'
+    }).use(['jquery','layer', 'form','table','laytpl'], function(){
+    var $ = jQuery,
+    layer = layui.layer,
+    table = layui.table,
+    form = layui.form,
+    laytpl=layui.laytpl;
+    
+    //监听提交表单
+    form.on('submit(login_hash)', function(data){
+    	
+      var sfJson=data.field;
+      var rnd=parseInt(Math.random()*1000000);
+      sfJson.rnd=rnd;
+      $.post("./login",sfJson,function(resp){
+    	  if(resp.code===0){
+    		  top.window.location.href='./console/index';
+    	  }else{
+    		  $('#msgTip').html(resp.msg);
+    	  }
+      },"json");
+              
+      return false;
+    });    
+  });
+</script>     
+</body>  
+</html>
