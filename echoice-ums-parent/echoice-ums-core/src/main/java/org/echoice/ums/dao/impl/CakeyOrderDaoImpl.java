@@ -25,6 +25,7 @@ public class CakeyOrderDaoImpl extends BaseCommonDao{
         sb.append(",t.create_user");
         sb.append(",t.op_time");
         sb.append(",t.op_user");
+        sb.append(",t.sign_pdf");
 		
 		sb.append(" from ec_cakey_order t where 1=1");
 		

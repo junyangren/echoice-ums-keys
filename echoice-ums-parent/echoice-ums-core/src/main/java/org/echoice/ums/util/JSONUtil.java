@@ -34,6 +34,28 @@ public class JSONUtil {
 		return resp;
 	}
 	
+	public static String getGridFastJSON(Number totalSize,List bodyList,List footList){
+		JSONObject jsonObject=new JSONObject();
+		jsonObject.put("code", 0);
+		jsonObject.put(FIELD_TOTAL, totalSize);
+		if(bodyList==null){
+			bodyList=new ArrayList();
+		}
+		jsonObject.put(FIELD_ROWS, bodyList);
+		
+		if(footList==null){
+			footList=new ArrayList();
+		}
+		
+		jsonObject.put(FIELD_FOOTER, footList);
+		String resp=JSON.toJSONString(jsonObject);
+		return resp;
+	}
+	
+	public static String getGridFastJSON(Number totalSize,List bodyList){
+		return getGridFastJSON(totalSize,bodyList,null);
+	}
+	
 	public static String toJSONString(Object obj,String[] excudeField){
 		String resp=JSON.toJSONString(obj,SerializeConfig.globalInstance,new SerializeFilter[]{new AppPropertyPreFilter(excudeField)},DEFAULT_DATE_PATTERN,JSON.DEFAULT_GENERATE_FEATURE);
 		return resp;

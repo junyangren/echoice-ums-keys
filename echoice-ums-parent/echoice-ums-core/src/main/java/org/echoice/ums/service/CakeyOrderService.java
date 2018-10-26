@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.echoice.ums.dao.CakeyOrderDao;
 import org.echoice.ums.domain.CakeyOrder;
+import org.echoice.ums.domain.UserCakey;
 import org.springframework.data.domain.Page;
 
 public interface CakeyOrderService {
@@ -14,4 +15,5 @@ public interface CakeyOrderService {
 	public void batchDelete(List<Long> idList);
 	
 	public CakeyOrderDao getCakeyOrderDao();
+
 }

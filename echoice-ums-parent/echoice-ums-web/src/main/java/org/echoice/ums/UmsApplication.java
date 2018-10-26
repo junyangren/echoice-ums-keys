@@ -11,7 +11,7 @@ import net.unicon.cas.client.configuration.EnableCasClient;
 
 @SpringBootApplication
 @ImportResource(value = {"classpath:applicationContext-service.xml"})
-@EnableCasClient
+//@EnableCasClient
 @ServletComponentScan
 public class UmsApplication extends SpringBootServletInitializer{
 

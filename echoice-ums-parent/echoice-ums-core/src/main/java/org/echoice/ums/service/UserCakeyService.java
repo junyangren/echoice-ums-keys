@@ -6,6 +6,7 @@ import java.util.Map;
 import org.springframework.data.domain.Page;
 
 import org.echoice.ums.dao.UserCakeyDao;
+import org.echoice.ums.domain.CakeyOrder;
 import org.echoice.ums.domain.UserCakey;
 import org.echoice.ums.web.view.MsgTipExt;
 
@@ -47,4 +48,26 @@ public interface UserCakeyService {
 	 * @return
 	 */
 	public MsgTipExt saveBatchStorage(List<UserCakey> list);
+	
+	/**
+	 * 创建领取临时工单
+	 * @param userId
+	 * @param list
+	 * @param updateStatus
+	 * @return
+	 */
+	public CakeyOrder createIssueByUserTmpOrder(Long userId,List<UserCakey> list,String updateStatus);
+	
+	/**
+	 * 创建领取临时工单
+	 * @param userCakey
+	 * @return
+	 */
+	public CakeyOrder createIssueByDeptTmpOrder(UserCakey userCakey);
+	
+	/**
+	 * 保存领取工单
+	 * @param cakeyOrder
+	 */
+	public void saveIssueOrder(CakeyOrder cakeyOrder);
 }

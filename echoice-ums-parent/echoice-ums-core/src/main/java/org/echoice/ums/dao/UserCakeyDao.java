@@ -1,5 +1,6 @@
 package org.echoice.ums.dao;
 
+import java.util.Date;
 import java.util.List;
 
 import org.echoice.ums.domain.UserCakey;
@@ -26,9 +27,13 @@ public interface UserCakeyDao extends JpaRepository<UserCakey,Long>,JpaSpecifica
 	@Query("select t from UserCakey t where t.idcard=?1 and t.hardwareSn=?2")
 	public List<UserCakey> findByIdcardAndHardwareSn(String idcard,String hardwareSn);
 	
-	@Query("update UserCakey t set t.status=?3 where t.idcard=?1 and t.hardwareSn=?2")
+	//@Query("update UserCakey t set t.status=?3 where t.idcard=?1 and t.hardwareSn=?2")
+	//@Modifying
+	//public Long update(String idcard,String hardwareSn,String status);
+	
+	@Query("update UserCakey t set t.status=?3,t.opTime=?4 where t.idcard=?1 and t.hardwareSn=?2")
 	@Modifying
-	public Long update(String idcard,String hardwareSn,String status);
+	public int update(String idcard,String hardwareSn,String status,Date opTime);
 	
 	//@Query(value="select new org.echoice.ums.web.view.UserCakeyReportView(select t.status,count(1)) from UserCakey t group by t.status order by t.status asc",
 	//		nativeQuery=false)

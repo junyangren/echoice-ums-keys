@@ -11,7 +11,7 @@
     <meta http-equiv="expires" content="0">   
     <link th:replace="fragments/css" />
     <link rel="stylesheet" th:href="@{/component/ztree/css/zTreeStyle/zTreeStyle.css}" /> 
-    <object id="ocx" classid="clsid:F79F8EEC-3E74-4B89-98D3-5CB7D44DD398" style="width: 0;height: 0"></object>
+    
 </head>
 <body>
     <div class="layui-fluid" style="margin-top: 12px;">
@@ -79,40 +79,7 @@
     table = layui.table,
     form = layui.form,
     upload = layui.upload,
-    laytpl=layui.laytpl;
-    
-    ecApp.uploadSignPdf=function(resp,callBackFun){
-        var curLayerSignIndex=layer.alert('领取单号：'+resp.data.orderId+'，请手写版上签字确认！！');
- 	   var signPdfV=ocx.HandSignPdf(resp.data.pdf);
- 	   layer.close(curLayerSignIndex);
- 	   if(signPdfV&&!(signPdfV==='')){
- 		   //上传签名pdf
- 		    var curLayerIndex2=layer.load();
- 		    var pdfUploadJson={};
- 		    pdfUploadJson.signPdf=signPdfV;
- 		    pdfUploadJson.rnd=parseInt(Math.random()*1000000);
-	            $.ajax({
-	     		   type:"POST",
-	     		   url:'./saveIssueOrder',
-	     		   data:pdfUploadJson,
-	     		   dataType:'json',
-	     		   success:function(resp){
-	     			  layer.alert(resp.msg);
-	     			  if(resp.code===0){
-	     				 if(callBackFun){
-	     					callBackFun();
-	     				 }
-	     			  }
-	     		   },complete:function(){
-	     			   layer.close(curLayerIndex2);
-	     		   },error:function(){
-	     			   layer.alert("操作失败，请重试！");
-	     		   }
-	            }) 
- 	   }else{
- 		  layer.alert('签字失败，请重试！！');
- 	   }    	
-    }
+    laytpl=layui.laytpl;   
     
     var tableIns=table.render({
         method: 'post',
@@ -145,7 +112,7 @@
             ,{field: 'status',title: '状态',width: 60,align:'center',templet: '#statusTpl'}
             ,{field: 'opTime',title: '操作时间',width: 120,align:'center'},
             ,{field: 'taxis',title: '排序',width: 80,align:'center',sort: false}
-            ,{fixed: 'right',width: 80,align: 'center',toolbar: '#ecColTool'}
+            ,{fixed: 'right',width: 120,align: 'center',toolbar: '#ecColTool'}
           ]
         ]
       });
@@ -227,7 +194,6 @@
                                 },
                                 done : function(res) {
                                     layer.closeAll('loading'); //关闭loading
-                                    layer.alert(res.msg);
                                     //上传完毕回调
                                     if (res.code == 0){
                                         $("#filePath").val(res.data.filePath);
@@ -242,7 +208,7 @@
                                         
                                         return;
                                     } else {
-                                        //layer.alert(res.msg);
+                                        layer.alert(res.msg);
                                         return;
                                     }
                                 },
@@ -273,15 +239,21 @@
                         var curLayerIndex=layer.load();
                         $.ajax({
                            type:"POST",
-                           url:"./createIssueByDeptTmpOrder",
+                           url:"./issueByDept",
                            data:sfJson,
                            dataType:'json',
                            success:function(resp){
-                        	   if(resp.code==0){
-                        		   ecApp.uploadSignPdf(resp);
-                        	   }else{
-                        		   layer.alert(resp.msg);
-                        	   }
+                               layer.alert(resp.msg);
+                               if(resp.code===0){
+                            	   var _html='<p>1.领取单号：'+resp.data.orderId+'</p>';
+                            	   _html=_html+'<p>2.待签名PDF下载请点<a style="color:red;font-weight:bold" href="../cakeyOrder/downPdf?orderId='+resp.data.orderId+'" target="_blank">【这里】</a></p>';
+                            	   _html=_html+'<p>3.签名PDF上传，请到【CA-KEY操作工单】界面，根据工单号选择对应的记录上传</p>'
+                                   layer.open({
+                                       title: sfJson.groupName+'-领取单PDF下载'
+                                       ,content: _html
+                                     }); 
+                               }
+ 
                            },
                            complete:function(){
                                layer.close(curLayerIndex);
@@ -430,76 +402,34 @@
             sfJson.updateStatus=updateStatus;
             sfJson.userId=ecApp.curSelUser.userId;
             sfJson.userCaKeys=JSON.stringify(checkStatus.data);
+            $.post("./update",sfJson,function(resp){
+                if(resp){
+                    if(resp.code===0){
+                        var vWhere={};
+                        vWhere.idcard=ecApp.curSelUser.idcard;
+                        ecApp.userCakeyTableIns.reload({where: vWhere});
+                        
+                        if(obj.event==='issueKey'){
+                        	var _html='<p>1.领取单号：'+resp.data.orderId+'</p>';
+                            _html=_html+'<p>2.待签名PDF下载请点<a style="color:red;font-weight:bold" href="../cakeyOrder/downPdf?orderId='+resp.data.orderId+'" target="_blank">【这里】</a></p>';
+                            _html=_html+'<p>3.签名PDF上传，请到【CA-KEY操作工单】界面，根据工单号选择对应的记录上传</p>'
+                            layer.open({
+                                title: sfJson.userName+'-领取单PDF下载'
+                                ,content: _html
+                              });
+                        }else{
+                        	layer.alert(resp.msg);
+                        }
+                    }else{
+                    	layer.alert(resp.msg);
+                    }
+                }else{
+                    layer.alert('操作失败');
+                }
+                
+            },"json");
             
-            var opEvent=obj.event;	
-            var url="./update";
-            if(opEvent==='issueKey'){
-            	url="./createIssueByUserTmpOrder";
-            }
-            
-            var curLayerIndex=layer.load();
-            $.ajax({
-     		   type:"POST",
-     		   url:url,
-     		   data:sfJson,
-     		   dataType:'json',
-     		   success:function(resp){
-                   if(resp.code===0){
-                       if(obj.event==='issueKey'){
-                    	   ecApp.uploadSignPdf(resp,function(){
-                    		   var vWhere={};
-		                       vWhere.idcard=ecApp.curSelUser.idcard;
-		                       ecApp.userCakeyTableIns.reload({where: vWhere});
-                    	   });
-                    	   /**
-                           var curLayerSignIndex=layer.alert('领取单号：'+resp.data.orderId+'，请手写版上签字确认！！');
-                    	   var signPdfV=ocx.HandSignPdf(resp.data.pdf);
-                    	   layer.close(curLayerSignIndex);
-                    	   if(signPdfV&&!(signPdfV==='')){
-                    		    var curLayerIndex2=layer.load();
-                    		    var pdfUploadJson={};
-                    		    pdfUploadJson.signPdf=signPdfV;
-                    		    pdfUploadJson.rnd=parseInt(Math.random()*1000000);
-					            $.ajax({
-					     		   type:"POST",
-					     		   url:'./saveIssueOrder',
-					     		   data:pdfUploadJson,
-					     		   dataType:'json',
-					     		   success:function(resp){
-					     			  layer.alert(resp.msg);
-					     			  if(resp.code===0){
-					     				 var vWhere={};
-				                         vWhere.idcard=ecApp.curSelUser.idcard;
-				                         ecApp.userCakeyTableIns.reload({where: vWhere});
-					     			  }
-					     		   },complete:function(){
-					     			   layer.close(curLayerIndex2);
-					     		   },error:function(){
-					     			   layer.alert("操作失败，请重试！");
-					     		   }
-					            }) 
-                    	   }else{
-                    		  layer.alert('签字失败，请重试！！');
-                    	   }**/
-                       }else{
-                           var vWhere={};
-                           vWhere.idcard=ecApp.curSelUser.idcard;
-                           ecApp.userCakeyTableIns.reload({where: vWhere});
-                       	   layer.alert(resp.msg);
-                       }
-                   }else{
-                   		layer.alert(resp.msg);
-                   }
-     		   },
-     		   complete:function(){
-     			   layer.close(curLayerIndex);
-     		   },
-     		   error:function(){
-     			   layer.alert("操作失败，请重试！");
-     		   }
-     		});
-            
-          
+
           }else{
         	  layer.msg('请选择要操作的KEY记录');
           }

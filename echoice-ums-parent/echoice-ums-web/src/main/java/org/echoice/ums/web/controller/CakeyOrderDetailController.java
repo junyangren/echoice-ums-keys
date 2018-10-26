@@ -2,7 +2,6 @@ package org.echoice.ums.web.controller;
 
 import javax.servlet.ServletRequest;
 
-import org.echoice.modules.web.json.EasyUIUtil;
 import org.echoice.ums.domain.CakeyOrderDetail;
 import org.echoice.ums.service.CakeyOrderDetailService;
 import org.echoice.ums.util.JSONUtil;
@@ -34,7 +33,7 @@ public class CakeyOrderDetailController{
     public String searchJSON(@RequestParam(value = "page", defaultValue = "1") int pageNumber,
             @RequestParam(value = "rows", defaultValue = PAGE_SIZE) int pageSize,CakeyOrderDetail searchForm,ServletRequest request) {
         Page<CakeyOrderDetail> page=cakeyOrderDetailService.getCakeyOrderDetailDao().findPageList(searchForm, pageNumber, pageSize);
-        String respStr=JSONUtil.getGridFastJSON(page.getTotalElements(), page.getContent(), null, null);
+        String respStr=JSONUtil.getGridFastJSON(page.getTotalElements(), page.getContent());
         logger.debug("respStr:{}",respStr);
         return respStr;
     }

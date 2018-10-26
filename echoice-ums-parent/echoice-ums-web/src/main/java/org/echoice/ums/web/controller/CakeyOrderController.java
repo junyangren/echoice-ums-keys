@@ -1,6 +1,7 @@
 package org.echoice.ums.web.controller;
 
-import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URLEncoder;
@@ -13,6 +14,7 @@ import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.echoice.modules.web.MsgTip;
@@ -21,9 +23,11 @@ import org.echoice.ums.domain.CakeyOrder;
 import org.echoice.ums.domain.CakeyOrderDetail;
 import org.echoice.ums.service.CakeyOrderDetailService;
 import org.echoice.ums.service.CakeyOrderService;
+import org.echoice.ums.service.UserCakeyService;
 import org.echoice.ums.service.impl.UserCakeyServiceImpl;
 import org.echoice.ums.util.FileUtil;
 import org.echoice.ums.util.JSONUtil;
+import org.echoice.ums.util.OrderPdfUtil;
 import org.echoice.ums.web.UmsHolder;
 import org.echoice.ums.web.view.MsgTipExt;
 import org.echoice.ums.web.view.UserCakeyReportView;
@@ -48,14 +52,6 @@ import com.github.abel533.echarts.code.AxisType;
 import com.github.abel533.echarts.series.Line;
 import com.github.abel533.echarts.series.Series;
 import com.google.common.collect.Lists;
-import com.itextpdf.text.Document;
-import com.itextpdf.text.Element;
-import com.itextpdf.text.Font;
-import com.itextpdf.text.Phrase;
-import com.itextpdf.text.pdf.BaseFont;
-import com.itextpdf.text.pdf.PdfPCell;
-import com.itextpdf.text.pdf.PdfPTable;
-import com.itextpdf.text.pdf.PdfWriter;
 /**
 * 描述：caKey操作工单 控制层
 * @author wujy
@@ -74,6 +70,9 @@ public class CakeyOrderController{
 	private CakeyOrderDetailService cakeyOrderDetailService;
 	
 	@Autowired
+	private UserCakeyService userCakeyService;
+	
+	@Autowired
 	private ConfigBean configBean;
 	
 	@RequestMapping(value="index")
@@ -86,7 +85,7 @@ public class CakeyOrderController{
     public String searchJSON(@RequestParam(value = "page", defaultValue = "1") int pageNumber,
             @RequestParam(value = "rows", defaultValue = PAGE_SIZE) int pageSize,CakeyOrder searchForm,ServletRequest request) {
         Page<CakeyOrder> page=cakeyOrderService.getCakeyOrderDao().findPageList(searchForm, pageNumber, pageSize);
-        String respStr=JSONUtil.getGridFastJSON(page.getTotalElements(), page.getContent(), null, null);
+        String respStr=JSONUtil.getGridFastJSON(page.getTotalElements(), page.getContent());
         logger.debug("respStr:{}",respStr);
         return respStr;
     }
@@ -258,88 +257,48 @@ public class CakeyOrderController{
 			msgTip.setMsg("文件上传失败："+e.getMessage());
 		}	
 		return msgTip;
-	}    
+	}
 	
+	/**
+	 * 下载未签名PDF
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
 	@RequestMapping(value = "downPdf")
-	public String downPdf(CakeyOrder cakeyOrder,HttpServletRequest request,HttpServletResponse response) throws Exception{
+	public String downPdf(HttpServletRequest request,HttpServletResponse response) throws Exception{
 		String orderId=request.getParameter("orderId");
 		response.setContentType("application/x-msdownload"); 
 		response.setHeader("Content-Disposition", "attachment; filename=\""+ URLEncoder.encode(orderId + ".pdf", "UTF-8") + "\"");
 		
 		List<CakeyOrderDetail> list=this.cakeyOrderDetailService.getCakeyOrderDetailDao().findByOrderId(orderId);
-		
 		OutputStream os = response.getOutputStream();
-		BufferedOutputStream osbf=new BufferedOutputStream(os);
-		
-		
-		Document document=new Document();
-		PdfWriter.getInstance(document,osbf);
-        document.open(); 
-        
-        BaseFont bfChinese=BaseFont.createFont("STSong-Light","UniGB-UCS2-H",BaseFont.NOT_EMBEDDED);
-        Font keyfont = new Font(bfChinese, 8, Font.BOLD);
-        Font textfont = new Font(bfChinese, 8, Font.NORMAL);
-        
-        PdfPTable table = new PdfPTable(5);
-        table.setTotalWidth(520); 
-        table.setLockedWidth(true); 
-        table.setHorizontalAlignment(Element.ALIGN_CENTER);      
-        table.getDefaultCell().setBorder(1);
-        
-        table.addCell(createCell("工单号："+orderId, keyfont,Element.ALIGN_LEFT,5,false)); 
-        
-        table.addCell(createCell("姓名", keyfont, Element.ALIGN_CENTER)); 
-        table.addCell(createCell("身份证号", keyfont, Element.ALIGN_CENTER)); 
-        table.addCell(createCell("硬件介质SN", keyfont, Element.ALIGN_CENTER));
-        table.addCell(createCell("办理类型", keyfont, Element.ALIGN_CENTER));
-        table.addCell(createCell("办理时间", keyfont, Element.ALIGN_CENTER));
-		String dft="yyyy-MM-dd";
-
-		for (CakeyOrderDetail cakeyOrderDetail : list) {
-            table.addCell(createCell(cakeyOrderDetail.getName(), textfont)); 
-            table.addCell(createCell(cakeyOrderDetail.getIdcard(), textfont)); 
-            table.addCell(createCell(cakeyOrderDetail.getHardwareSn(), textfont)); 
-            table.addCell(createCell(UserCakeyServiceImpl.OPTS_MAP.get(cakeyOrderDetail.getOpType()), textfont));
-            table.addCell(createCell(DateFormatUtils.format(cakeyOrderDetail.getCreateTime(), dft), textfont));
-		}
-
-        document.add(table);
-        document.close();
-        
-        
+		OrderPdfUtil.createPdf(orderId,list,os);
 		return null;
 	}
-	
-    private PdfPCell createCell(String value,Font font){ 
-        PdfPCell cell = new PdfPCell(); 
-        cell.setVerticalAlignment(Element.ALIGN_MIDDLE); 
-        cell.setHorizontalAlignment(Element.ALIGN_CENTER);  
-        cell.setPhrase(new Phrase(value,font)); 
-       return cell; 
-   }
-	
-    private PdfPCell createCell(String value,Font font,int align){ 
-        PdfPCell cell = new PdfPCell(); 
-        cell.setVerticalAlignment(Element.ALIGN_MIDDLE);         
-        cell.setHorizontalAlignment(align);     
-        cell.setPhrase(new Phrase(value,font)); 
-       return cell; 
-   }
-	
-    private PdfPCell createCell(String value,Font font,int align,int colspan,boolean boderFlag){ 
-        PdfPCell cell = new PdfPCell(); 
-        cell.setVerticalAlignment(Element.ALIGN_MIDDLE); 
-        cell.setHorizontalAlignment(align);     
-        cell.setColspan(colspan); 
-        cell.setPhrase(new Phrase(value,font)); 
-        cell.setPadding(3.0f); 
-        if(!boderFlag){ 
-            cell.setBorder(0); 
-            cell.setPaddingTop(15.0f); 
-            cell.setPaddingBottom(8.0f); 
-        } 
-       return cell; 
-   }
-   
-    
+	/**
+	 * 下载签名PDF
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "downSignPdf")
+	public String downSignPdf(HttpServletRequest request,HttpServletResponse response) throws Exception{
+		String orderId=request.getParameter("orderId");
+		CakeyOrder cakeyOrder=this.cakeyOrderService.getCakeyOrderDao().findByOrderId(orderId);
+		if(cakeyOrder!=null&&StringUtils.isNotBlank(cakeyOrder.getSignPdf())) {
+			File file=new File(cakeyOrder.getSignPdf());
+			if(file.exists()) {
+				response.setContentType("application/x-msdownload"); 
+				response.setHeader("Content-Disposition", "attachment; filename=\""+ URLEncoder.encode(orderId + ".pdf", "UTF-8") + "\"");
+				FileInputStream fis=new FileInputStream(file);
+				IOUtils.copy(fis, response.getOutputStream());
+				fis.close();
+				return null;
+			}	
+		}
+		return "exception/404.html";
+	}
 }

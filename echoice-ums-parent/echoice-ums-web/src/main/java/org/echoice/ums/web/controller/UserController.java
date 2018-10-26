@@ -244,8 +244,10 @@ public class UserController {
 	 */
 	@RequestMapping(value = "fileUpload",method = RequestMethod.POST)
 	@ResponseBody
-	public MsgTipExt fileUpload(MultipartFile file,HttpServletRequest request) {
+	public String fileUpload(MultipartFile file,HttpServletRequest request,HttpServletResponse resp) {
+		String accept=request.getHeader("Accept");
 		MsgTipExt msgTip=new MsgTipExt();
+		msgTip.setMsg("文件上传成功");
 		int coloumNum = 0;
 		String originalFilename = file.getOriginalFilename();	
 		String fileSuffix=StringUtils.substringAfterLast(originalFilename, ".");
@@ -275,10 +277,23 @@ public class UserController {
 			msgTip.setCode(4002);
 			msgTip.setMsg("文件上传失败："+e.getMessage());
 		}
-		return msgTip;
+		
+		if(StringUtils.contains(accept, "application/json")) {
+			resp.setContentType(MediaType.APPLICATION_JSON_UTF8_VALUE);
+		}else {
+			resp.setContentType("text/html;charset=UTF-8");
+		}
+		
+		try {
+			resp.getWriter().write(JSON.toJSONString(msgTip));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
 	}
 	
-	@RequestMapping(value = "impFileData",method = RequestMethod.POST)
+	@RequestMapping(value = "impFileData",method = RequestMethod.POST,produces=MediaType.APPLICATION_JSON_UTF8_VALUE)
 	@ResponseBody
 	public String impFileData(EcUserInfoView ecUser,HttpServletRequest request) {
 		MsgTipExt msgTip=new MsgTipExt();
@@ -335,7 +350,7 @@ public class UserController {
 	 * @return
 	 * @throws Exception
 	 */
-	@RequestMapping(value = "modifyPassword")
+	@RequestMapping(value = "modifyPassword",produces=MediaType.APPLICATION_JSON_UTF8_VALUE)
 	@ResponseBody
 	public MsgTip modifyPassword(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		// TODO Auto-generated method stub

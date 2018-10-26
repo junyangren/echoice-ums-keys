@@ -31,9 +31,9 @@
 <script type="text/javascript" th:src="@{/component/ztree/js/jquery.ztree.all.js}"></script>
 <script type="text/html" id="ecColTool">
     <a class="layui-btn layui-btn-xs" lay-event="detail">明细</a>
-    {{#  if(d.signPdf&&d.signPdf!==''){ }}
-    <a class="layui-btn layui-btn-xs" lay-event="downSignPdf">下载签名PDF</a>
-    {{#  } }}
+    <a class="layui-btn layui-btn-xs" lay-event="downPdf">下载待签PDF</a>
+    <a class="layui-btn layui-btn-xs" lay-event="uploadPdf">上传已签PDF</a>
+    <a class="layui-btn layui-btn-xs" lay-event="downSignPdf">下载已签PDF</a>
 </script>
 
 <script type="text/html" id="ecToolbar">
@@ -85,8 +85,8 @@
             }}
             ,{field: 'opCount',title: 'Key数量',width: 100,sort: false}
             ,{field: 'createUser',title: '创建人',width: 120,align:'center'}
-            ,{field: 'createTime',title: '创建时间',width: 170,align:'center'}
-            ,{fixed: 'right',width: 160,align: 'left',toolbar: '#ecColTool'}
+            ,{field: 'createTime',title: '创建时间',width: 120,align:'center'}
+            ,{fixed: 'right',width: 360,align: 'center',toolbar: '#ecColTool'}
           ]
         ]
       });   
@@ -171,7 +171,8 @@
                             	  var r=ecApp.keyOptType(d.opType);
                             	  return r;
                               }}
-                              ,{field: 'opTime',title: '操作时间',width:170}
+                              ,{field: 'createTime',title: '创建时间',width:120}
+                              ,{field: 'opTime',title: '操作时间',width:120}
                             ]
                           ]
                         });
@@ -190,7 +191,7 @@
     	  document.forms['downPdfForm'].submit();
       }else if(obj.event === 'downSignPdf'){
     	  if(!data.signPdf||data.signPdf===''){
-    		  layer.msg('PDF签名文件未上传无法下载');
+    		  layer.msg('签名PDF文件未上传无法下载');
     	  }else{
               document.forms['downPdfForm'].action='./downSignPdf';
               $('#orderId').val(data.orderId);

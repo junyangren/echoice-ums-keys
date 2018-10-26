@@ -1,6 +1,7 @@
 package org.echoice.ums.domain;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -12,11 +13,11 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 import org.hibernate.validator.constraints.NotBlank;
-
 import org.springframework.format.annotation.DateTimeFormat;
 
 import com.alibaba.fastjson.annotation.JSONField;
@@ -80,7 +81,7 @@ public class CakeyOrder extends BaseEntity implements java.io.Serializable {
     */
 	@Temporal(TemporalType.TIMESTAMP)
 	@JSONField(format = "yyyy-MM-dd HH:mm:ss")
-	@DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")	
+	@DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
     @Column(name = "create_time" ,length=19)
     private Date createTime;
     
@@ -115,6 +116,8 @@ public class CakeyOrder extends BaseEntity implements java.io.Serializable {
     @Column(name = "sign_pdf" ,length=256)
     private String signPdf;
     
+    @Transient
+    private List<CakeyOrderDetail> cakeyOrderDetailList;
     
 	public Long getId() {
         return this.id;
@@ -186,6 +189,14 @@ public class CakeyOrder extends BaseEntity implements java.io.Serializable {
 
 	public void setSignPdf(String signPdf) {
 		this.signPdf = signPdf;
+	}
+
+	public List<CakeyOrderDetail> getCakeyOrderDetailList() {
+		return cakeyOrderDetailList;
+	}
+
+	public void setCakeyOrderDetailList(List<CakeyOrderDetail> cakeyOrderDetailList) {
+		this.cakeyOrderDetailList = cakeyOrderDetailList;
 	}
     
 }

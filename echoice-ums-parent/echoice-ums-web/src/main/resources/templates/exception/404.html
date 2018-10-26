@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>[[#{ums.app.name}]]</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="renderer" content="webkit"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/> 
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="cache-control" content="no-cache">
+    <meta http-equiv="expires" content="0">   
+    <link th:replace="fragments/css"></link>
+</head>
+<body>
+<div class="layui-fluid" style="margin-top: 12px;">
+  <div class="layui-row">
+    <div class="layui-col-xs12">
+      <div class="layui-row">
+        <div class="layui-col-md4">&nbsp;</div>
+        <div class="layui-col-md4">
+          <div class="kit-exception">
+            <i class="layui-icon kit-exception-icon">&#xe61c;</i>
+            <h3 class="kit-exception-title">:>404 抱歉，你访问的资源不存在.</h3>
+            <a href="javascript:history.back(-1);" class="layui-btn">返回上一页</a>
+          </div>
+        </div>
+        <div class="layui-col-md4">&nbsp;</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

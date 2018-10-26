@@ -1,16 +1,25 @@
 package org.echoice.ums.web.controller;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
+import org.echoice.ums.config.ConfigBean;
+import org.echoice.ums.domain.CakeyOrder;
 import org.echoice.ums.domain.UserCakey;
 import org.echoice.ums.service.UserCakeyService;
+import org.echoice.ums.util.FileUtil;
 import org.echoice.ums.util.JSONUtil;
+import org.echoice.ums.util.OrderPdfUtil;
 import org.echoice.ums.web.UmsHolder;
 import org.echoice.ums.web.view.MsgTipExt;
 import org.echoice.ums.web.view.UserCakeyReportView;
@@ -26,6 +35,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Maps;
 /**
 * 描述：用户KYE信息表控制层
 * @author wujy
@@ -34,11 +44,17 @@ import com.alibaba.fastjson.JSON;
 @Controller
 @RequestMapping(value = "/console/userCakey")
 public class UserCakeyController{
+	private static final String SESSION_CAKEYORDER="SESSION_CAKEYORDER";
 	private Logger logger=LoggerFactory.getLogger(this.getClass());
 	private static final String PAGE_SIZE = "20";
-	@Autowired
-	private UserCakeyService userCakeyService;
 	
+	private static final AtomicBoolean lock=new AtomicBoolean(true);
+	
+	@Autowired
+	private ConfigBean configBean;
+	
+	@Autowired
+	private UserCakeyService userCakeyService;	
 	@RequestMapping(value = "index")
 	public String index(){
 		return "userCakey/index";
@@ -52,7 +68,7 @@ public class UserCakeyController{
     		searchForm.setIdcard("-1");
     	}
         Page<UserCakey> page=userCakeyService.getUserCakeyDao().findPageList(searchForm, pageNumber, pageSize);
-        String respStr=JSONUtil.getGridFastJSON(page.getTotalElements(), page.getContent(), null, null);
+        String respStr=JSONUtil.getGridFastJSON(page.getTotalElements(), page.getContent(), null);
         logger.debug("respStr:{}",respStr);
         return respStr;
     }
@@ -62,7 +78,7 @@ public class UserCakeyController{
     public String searchAdvancedJSON(@RequestParam(value = "page", defaultValue = "1") int pageNumber,
             @RequestParam(value = "rows", defaultValue = PAGE_SIZE) int pageSize,UserCakey searchForm,ServletRequest request) {
         Page<UserCakey> page=userCakeyService.getUserCakeyDao().findAdvancedPageList(searchForm, pageNumber, pageSize);
-        String respStr=JSONUtil.getGridFastJSON(page.getTotalElements(), page.getContent(), null, null);
+        String respStr=JSONUtil.getGridFastJSON(page.getTotalElements(), page.getContent(),null);
         logger.debug("respStr:{}",respStr);
         return respStr;
     }
@@ -114,9 +130,94 @@ public class UserCakeyController{
 		String respStr=JSON.toJSONString(msgTip);
 		return respStr;
 	}
+
+	@RequestMapping(value = "createIssueByUserTmpOrder",method = RequestMethod.POST,produces=MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ResponseBody
+	public String createIssueByUserTmpOrder(HttpServletRequest request) {
+		MsgTipExt msgTip=new MsgTipExt();
+		String updateStatus=request.getParameter("updateStatus");
+		String userId=request.getParameter("userId");
+		String userCaKeys=request.getParameter("userCaKeys");
+		List<UserCakey> list=JSON.parseArray(userCaKeys, UserCakey.class);
+		try{
+			CakeyOrder cakeyOrder=userCakeyService.createIssueByUserTmpOrder(Long.valueOf(userId),list,updateStatus);
+			request.getSession().setAttribute(SESSION_CAKEYORDER, cakeyOrder);
+			ByteArrayOutputStream os=new ByteArrayOutputStream();
+			OrderPdfUtil.createPdf(cakeyOrder.getOrderId(), cakeyOrder.getCakeyOrderDetailList(), os);
+			byte[] binaryData = os.toByteArray();
+			String pdfBase64=Base64.encodeBase64String(binaryData);
+			Map<String,String> data=Maps.newHashMap();
+			data.put("orderId", cakeyOrder.getOrderId());
+			data.put("pdf", pdfBase64);
+			msgTip.setData(data);
+		}catch (Exception e) {
+			// TODO: handle exception
+			logger.error("异常：",e);
+			msgTip.setCode(4002);
+			msgTip.setMsg("异常："+e.getMessage());
+		}
+		String respStr=JSON.toJSONString(msgTip);
+		return respStr;
+	}
+	
+	@RequestMapping(value = "saveIssueOrder",method = RequestMethod.POST,produces=MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ResponseBody
+	public String saveIssueOrder(HttpServletRequest request) {
+		MsgTipExt msgTip=new MsgTipExt();
+		String signPdf=request.getParameter("signPdf");
+		try{
+			CakeyOrder cakeyOrder=(CakeyOrder)request.getSession().getAttribute(SESSION_CAKEYORDER);
+			byte[] signPdfBytes=Base64.decodeBase64(signPdf);
+			ByteArrayInputStream in=new ByteArrayInputStream(signPdfBytes);
+			String signPdfPath=FileUtil.saveFile(".pdf", this.configBean.getUploadPath(), in);
+			cakeyOrder.setSignPdf(signPdfPath);
+			userCakeyService.saveIssueOrder(cakeyOrder);
+			request.getSession().removeAttribute(SESSION_CAKEYORDER);
+			msgTip.setMsg("签名PDF文件上传成功！！");
+		}catch (Exception e) {
+			// TODO: handle exception
+			logger.error("异常：",e);
+			msgTip.setCode(4002);
+			msgTip.setMsg("异常："+e.getMessage());
+		}
+		String respStr=JSON.toJSONString(msgTip);
+		return respStr;
+	}
+	
+	@RequestMapping(value = "createIssueByDeptTmpOrder",method = RequestMethod.POST,produces=MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ResponseBody
+	public String createIssueByDeptTmpOrder(UserCakey userCakey,HttpServletRequest request) {
+		MsgTipExt msgTip=new MsgTipExt();
+		try{
+			CakeyOrder cakeyOrder=userCakeyService.createIssueByDeptTmpOrder(userCakey);
+			if(cakeyOrder!=null) {
+				request.getSession().setAttribute(SESSION_CAKEYORDER, cakeyOrder);
+				ByteArrayOutputStream os=new ByteArrayOutputStream();
+				OrderPdfUtil.createPdf(cakeyOrder.getOrderId(), cakeyOrder.getCakeyOrderDetailList(), os);
+				byte[] binaryData = os.toByteArray();
+				String pdfBase64=Base64.encodeBase64String(binaryData);
+				Map<String,String> data=Maps.newHashMap();
+				data.put("orderId", cakeyOrder.getOrderId());
+				data.put("pdf", pdfBase64);
+				msgTip.setData(data);
+			}else {
+				msgTip.setCode(4002);
+				msgTip.setMsg("未找到可领取的Key");
+			}
+
+		}catch (Exception e) {
+			// TODO: handle exception
+			logger.error("异常：",e);
+			msgTip.setCode(4002);
+			msgTip.setMsg("异常："+e.getMessage());
+		}
+		String respStr=JSON.toJSONString(msgTip);
+		return respStr;
+	}
 	
 	@RequestMapping(value = "issueByDept",method = RequestMethod.POST,produces=MediaType.APPLICATION_JSON_UTF8_VALUE)
 	@ResponseBody
+	@Deprecated
 	public String issueByDept(UserCakey userCakey,ServletRequest request) {
 		MsgTipExt msgTip=new MsgTipExt();
 		try{
