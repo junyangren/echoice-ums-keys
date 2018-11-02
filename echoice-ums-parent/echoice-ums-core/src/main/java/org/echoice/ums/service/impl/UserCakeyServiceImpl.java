@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.echoice.modules.persistence.DynamicSpecifications;
 import org.echoice.modules.persistence.SearchFilter;
@@ -152,33 +153,39 @@ public class UserCakeyServiceImpl implements UserCakeyService{
 		//生成临时工单，pdf签名后再更新状态
 		long count=list.size();
 		String orderId=genOrderId();
-		CakeyOrder cakeyOrder=new CakeyOrder();
-		cakeyOrder.setOrderId(orderId);
-		cakeyOrder.setOpType(updateStatus);
-		cakeyOrder.setOpCount(count);
-		cakeyOrder.setCreateUser(UmsHolder.getUserAlias());
-		cakeyOrder.setCreateTime(now);
-		cakeyOrder.setOpUser(UmsHolder.getUserAlias());
-		cakeyOrder.setOpTime(now);
-		
+
+		CakeyOrder cakeyOrder=null;
 		CakeyOrderDetail cakeyOrderDetail=null;
 		List<CakeyOrderDetail> cakeyOrderDetailList=Lists.newLinkedList();
 		
 		for (UserCakey oneUserCakey : list) {
-			dbUserCakey=userCakeyDao.findOne(oneUserCakey.getId());		
-			cakeyOrderDetail=new CakeyOrderDetail();
-			cakeyOrderDetail.setOrderId(orderId);
-			cakeyOrderDetail.setOpType(updateStatus);
-			cakeyOrderDetail.setIdcard(dbUserCakey.getIdcard());
-			cakeyOrderDetail.setHardwareSn(dbUserCakey.getHardwareSn());
-			cakeyOrderDetail.setName(ecUser.getName());
-			cakeyOrderDetail.setCreateUser(UmsHolder.getUserAlias());
-			cakeyOrderDetail.setCreateTime(now);
-			cakeyOrderDetail.setOpUser(UmsHolder.getUserAlias());
-			cakeyOrderDetail.setOpTime(now);
-			cakeyOrderDetailList.add(cakeyOrderDetail);
+			dbUserCakey=userCakeyDao.findOne(oneUserCakey.getId());	
+			if(StringUtils.equalsIgnoreCase(dbUserCakey.getStatus(), "01")) {
+				cakeyOrderDetail=new CakeyOrderDetail();
+				cakeyOrderDetail.setOrderId(orderId);
+				cakeyOrderDetail.setOpType(updateStatus);
+				cakeyOrderDetail.setIdcard(dbUserCakey.getIdcard());
+				cakeyOrderDetail.setHardwareSn(dbUserCakey.getHardwareSn());
+				cakeyOrderDetail.setName(ecUser.getName());
+				cakeyOrderDetail.setCreateUser(UmsHolder.getUserAlias());
+				cakeyOrderDetail.setCreateTime(now);
+				cakeyOrderDetail.setOpUser(UmsHolder.getUserAlias());
+				cakeyOrderDetail.setOpTime(now);
+				cakeyOrderDetailList.add(cakeyOrderDetail);
+			}
 		}
-		cakeyOrder.setCakeyOrderDetailList(cakeyOrderDetailList);
+		
+		if(cakeyOrderDetailList.size()>0) {
+			cakeyOrder=new CakeyOrder();
+			cakeyOrder.setOrderId(orderId);
+			cakeyOrder.setOpType(updateStatus);
+			cakeyOrder.setOpCount(count);
+			cakeyOrder.setCreateUser(UmsHolder.getUserAlias());
+			cakeyOrder.setCreateTime(now);
+			cakeyOrder.setOpUser(UmsHolder.getUserAlias());
+			cakeyOrder.setOpTime(now);
+			cakeyOrder.setCakeyOrderDetailList(cakeyOrderDetailList);
+		}
 		return cakeyOrder;
 	}
 	

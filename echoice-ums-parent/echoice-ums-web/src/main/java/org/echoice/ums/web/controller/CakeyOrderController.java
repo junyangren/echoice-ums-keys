@@ -271,10 +271,10 @@ public class CakeyOrderController{
 		String orderId=request.getParameter("orderId");
 		response.setContentType("application/x-msdownload"); 
 		response.setHeader("Content-Disposition", "attachment; filename=\""+ URLEncoder.encode(orderId + ".pdf", "UTF-8") + "\"");
-		
+		CakeyOrder cakeyOrder= cakeyOrderService.getCakeyOrderDao().findByOrderId(orderId);
 		List<CakeyOrderDetail> list=this.cakeyOrderDetailService.getCakeyOrderDetailDao().findByOrderId(orderId);
 		OutputStream os = response.getOutputStream();
-		OrderPdfUtil.createPdf(orderId,list,os);
+		OrderPdfUtil.createPdf(cakeyOrder,list,os,null);
 		return null;
 	}
 	/**

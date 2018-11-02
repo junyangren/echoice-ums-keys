@@ -1,11 +1,9 @@
 /*!
-
  @Title: Layui
  @Description：经典模块化前端框架
  @Site: www.layui.com
  @Author: 贤心
  @License：MIT
-
  */
  
 ;!function(win){
@@ -19,7 +17,7 @@
   }
 
   ,Layui = function(){
-    this.v = '2.4.3'; //版本号
+    this.v = '2.4.4'; //版本号
   }
 
   //获取layui所在目录
@@ -540,7 +538,7 @@
     
     return result;
   };
-  
+
   /**
    * 将外部扩展的模块注入成为内置模块 ，注意：文件需要放在lay文件夹下
    * @param {*外部扩展的模块} mods 
@@ -552,9 +550,10 @@
     Object.assign(modules, mods);
     Object.assign(that.modules, mods);
     return that;
-  }
-
+  }  
+  
   win.layui = new Layui();
   
 }(window);
+
 

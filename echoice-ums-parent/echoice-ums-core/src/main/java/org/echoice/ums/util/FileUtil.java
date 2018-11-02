@@ -31,6 +31,15 @@ public class FileUtil {
 		return filePath;
 	}
 	
+	public static File genFilePath(String saveBasePath,String fileSuffix) throws IOException{
+		String fold=genFold();
+		String fileName=genFileName(fileSuffix);
+		String filePath = saveBasePath+File.separator +fold+File.separator+fileName ;
+		File file=new File(filePath);
+		FileUtils.forceMkdirParent(file);
+		return file;
+	}
+	
 	private static String genFileName(String fileSuffix) {
 		int fileIdx=FILE_IDX.incrementAndGet()%1000;
 		String fileIdxStr=String.format("%04d", fileIdx);

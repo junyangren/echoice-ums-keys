@@ -2,6 +2,9 @@ package org.echoice.ums.web.controller;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -141,15 +144,7 @@ public class UserCakeyController{
 		List<UserCakey> list=JSON.parseArray(userCaKeys, UserCakey.class);
 		try{
 			CakeyOrder cakeyOrder=userCakeyService.createIssueByUserTmpOrder(Long.valueOf(userId),list,updateStatus);
-			request.getSession().setAttribute(SESSION_CAKEYORDER, cakeyOrder);
-			ByteArrayOutputStream os=new ByteArrayOutputStream();
-			OrderPdfUtil.createPdf(cakeyOrder.getOrderId(), cakeyOrder.getCakeyOrderDetailList(), os);
-			byte[] binaryData = os.toByteArray();
-			String pdfBase64=Base64.encodeBase64String(binaryData);
-			Map<String,String> data=Maps.newHashMap();
-			data.put("orderId", cakeyOrder.getOrderId());
-			data.put("pdf", pdfBase64);
-			msgTip.setData(data);
+			createTmpOrder(cakeyOrder,request,msgTip);
 		}catch (Exception e) {
 			// TODO: handle exception
 			logger.error("异常：",e);
@@ -160,25 +155,59 @@ public class UserCakeyController{
 		return respStr;
 	}
 	
+	private void createTmpOrder(CakeyOrder cakeyOrder,HttpServletRequest request,MsgTipExt msgTip) throws Exception{
+		if(cakeyOrder!=null) {
+			request.getSession().setAttribute(SESSION_CAKEYORDER, cakeyOrder);
+			ByteArrayOutputStream os=new ByteArrayOutputStream();
+			OrderPdfUtil.createPdf(cakeyOrder, cakeyOrder.getCakeyOrderDetailList(), os,null);
+			byte[] binaryData = os.toByteArray();
+			String pdfBase64=Base64.encodeBase64String(binaryData);
+			Map<String,String> data=Maps.newHashMap();
+			data.put("orderId", cakeyOrder.getOrderId());
+			data.put("pdf", pdfBase64);
+			msgTip.setData(data);
+			
+		}else {
+			msgTip.setCode(4002);
+			msgTip.setMsg("未找到可领取的Key");
+		}
+	}
+	
 	@RequestMapping(value = "saveIssueOrder",method = RequestMethod.POST,produces=MediaType.APPLICATION_JSON_UTF8_VALUE)
 	@ResponseBody
 	public String saveIssueOrder(HttpServletRequest request) {
 		MsgTipExt msgTip=new MsgTipExt();
 		String signPdf=request.getParameter("signPdf");
+		FileOutputStream fios=null;
 		try{
 			CakeyOrder cakeyOrder=(CakeyOrder)request.getSession().getAttribute(SESSION_CAKEYORDER);
 			byte[] signPdfBytes=Base64.decodeBase64(signPdf);
 			ByteArrayInputStream in=new ByteArrayInputStream(signPdfBytes);
-			String signPdfPath=FileUtil.saveFile(".pdf", this.configBean.getUploadPath(), in);
-			cakeyOrder.setSignPdf(signPdfPath);
+			String handSignPath=FileUtil.saveFile(".png", this.configBean.getUploadPath(), in);
+			
+			File file=FileUtil.genFilePath(this.configBean.getUploadPath(), "pdf");
+			logger.info("{}",file.getAbsolutePath());
+			fios=new FileOutputStream(file);
+			OrderPdfUtil.createPdf(cakeyOrder, cakeyOrder.getCakeyOrderDetailList(), fios , signPdfBytes);
+			
+			cakeyOrder.setSignPdf(file.getAbsolutePath());
 			userCakeyService.saveIssueOrder(cakeyOrder);
 			request.getSession().removeAttribute(SESSION_CAKEYORDER);
-			msgTip.setMsg("签名PDF文件上传成功！！");
+			msgTip.setMsg("上传PDF签名文件成功！！");
 		}catch (Exception e) {
 			// TODO: handle exception
 			logger.error("异常：",e);
 			msgTip.setCode(4002);
 			msgTip.setMsg("异常："+e.getMessage());
+		} finally {
+			if(fios!=null) {
+				try {
+					fios.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		}
 		String respStr=JSON.toJSONString(msgTip);
 		return respStr;
@@ -190,21 +219,7 @@ public class UserCakeyController{
 		MsgTipExt msgTip=new MsgTipExt();
 		try{
 			CakeyOrder cakeyOrder=userCakeyService.createIssueByDeptTmpOrder(userCakey);
-			if(cakeyOrder!=null) {
-				request.getSession().setAttribute(SESSION_CAKEYORDER, cakeyOrder);
-				ByteArrayOutputStream os=new ByteArrayOutputStream();
-				OrderPdfUtil.createPdf(cakeyOrder.getOrderId(), cakeyOrder.getCakeyOrderDetailList(), os);
-				byte[] binaryData = os.toByteArray();
-				String pdfBase64=Base64.encodeBase64String(binaryData);
-				Map<String,String> data=Maps.newHashMap();
-				data.put("orderId", cakeyOrder.getOrderId());
-				data.put("pdf", pdfBase64);
-				msgTip.setData(data);
-			}else {
-				msgTip.setCode(4002);
-				msgTip.setMsg("未找到可领取的Key");
-			}
-
+			createTmpOrder(cakeyOrder,request,msgTip);
 		}catch (Exception e) {
 			// TODO: handle exception
 			logger.error("异常：",e);

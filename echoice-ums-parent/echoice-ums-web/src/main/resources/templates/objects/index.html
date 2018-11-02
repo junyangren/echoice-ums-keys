@@ -22,10 +22,10 @@
             </div>
             <div class="layui-card-body">
                 <div class="layui-row">
-                  <div class="layui-col-xs3" style="max-height:400px;overflow: auto">
+                  <div id="ec-left-layout" class="layui-col-xs3" style="max-height:400px;overflow: auto">
                     <ul id="menuTreeId" class="ztree"></ul>
                   </div>
-                  <div class="layui-col-xs9">          
+                  <div id="ec-right-layout" class="layui-col-xs9">          
                     <table id="ecTable" lay-filter="ecTable"></table>                
                   </div>
                 </div>
@@ -74,11 +74,23 @@
     form = layui.form,
     laytpl=layui.laytpl;
 
+    var device = layui.device();
+    var tbWidthV='';
+    var layerOffsetV='rt';
+    if(device.ios||device.android){
+    	var ecLeftLayoutW=220;
+    	$('#ec-left-layout').width(ecLeftLayoutW);
+    	tbWidthV=$('body').innerWidth()-ecLeftLayoutW-60;
+    	$('#ec-left-layout').addClass('ec-fl').removeClass('layui-col-xs3');
+    	$('#ec-right-layout').addClass('ec-fl').removeClass('layui-col-xs9');	
+    }    
+    
     var tableIns=table.render({
         method: 'post',
         limit: 20,
         even:true,
         elem: '#ecTable',
+        width:tbWidthV,
         height: 'full-100',
         toolbar: '#ecToolbar',
         defaultToolbar: ['filter','exports'],
