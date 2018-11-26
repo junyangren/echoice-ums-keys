@@ -99,6 +99,7 @@ public class UmsCommonServiceImpl implements UmsCommonService {
 		String md5Password=null;
 		//入库工单
 		List<UserCakey> storageList=new ArrayList<UserCakey>();
+		EcGroup ecGroup=null;
 		for (EcUserInfoView ecUserInfoView : list) {
 			//查看用戶是否存在
 			ecUsers=ecUserDao.findByAlias(ecUserInfoView.getAlias());
@@ -111,8 +112,9 @@ public class UmsCommonServiceImpl implements UmsCommonService {
 					e.printStackTrace();
 				}
 				ecUser.setStatus("y");
-				if(StringUtils.isNoneBlank(ecUserInfoView.getIdcard())) {
-					ecUser.setIdcard(ecUserInfoView.getAlias());
+				if(StringUtils.isBlank(ecUserInfoView.getAlias())) {
+					//ecUser.setIdcard(ecUserInfoView.getAlias());
+					ecUser.setAlias(ecUserInfoView.getIdcard());
 				}
 				
 				ecUser.setOpTime(now);
@@ -125,7 +127,7 @@ public class UmsCommonServiceImpl implements UmsCommonService {
 				
 				ecUserDao.save(ecUser);
 				ecUserGroup=new EcUserGroup();
-				EcGroup ecGroup=groupMap.get(ecUserInfoView.getGroupName());
+				ecGroup=groupMap.get(ecUserInfoView.getGroupName());
 
 				ecUserGroup.setEcGroup(ecGroup);
 				ecUserGroup.setEcUser(ecUser);
@@ -148,7 +150,12 @@ public class UmsCommonServiceImpl implements UmsCommonService {
 					userCakey.setOpTime(now);
 					userCakey.setCreateUser(UmsHolder.getUserAlias());
 					userCakey.setOpUser(UmsHolder.getUserAlias());
-					userCakey.setUserName(ecUser.getName());
+					userCakey.setEcUser(ecUser);
+					
+					ecGroup=new EcGroup();
+					ecGroup.setName(ecUserInfoView.getGroupName());
+					userCakey.setEcGroup(ecGroup);
+					//userCakey.setUserName(ecUser.getName());
 					userCakeyDao.persist(userCakey);
 					storageList.add(userCakey);
 				}

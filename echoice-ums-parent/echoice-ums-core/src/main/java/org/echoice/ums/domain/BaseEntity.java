@@ -10,14 +10,8 @@ public class BaseEntity {
 	private String appFormEndTime;
 	
 	@Transient
-	private String groupName;
-	
-	@Transient
 	private Long groupId;
-	
-	@Transient
-	private String userName;
-	
+
 	@Transient
 	private String appFormStartPartId;
 
@@ -41,14 +35,6 @@ public class BaseEntity {
 
 	public void setAppFormEndTime(String appFormEndTime) {
 		this.appFormEndTime = appFormEndTime;
-	}
-
-	public String getGroupName() {
-		return groupName;
-	}
-
-	public void setGroupName(String groupName) {
-		this.groupName = groupName;
 	}
 
 	public String getAppFormStartPartId() {
@@ -75,13 +61,6 @@ public class BaseEntity {
 		this.loginGroupAlias = loginGroupAlias;
 	}
 
-	public String getUserName() {
-		return userName;
-	}
-
-	public void setUserName(String userName) {
-		this.userName = userName;
-	}
 
 	public Long getGroupId() {
 		return groupId;
@@ -90,5 +69,5 @@ public class BaseEntity {
 	public void setGroupId(Long groupId) {
 		this.groupId = groupId;
 	}
-	
+
 }

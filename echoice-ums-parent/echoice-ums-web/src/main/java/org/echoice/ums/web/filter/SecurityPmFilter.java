@@ -23,7 +23,6 @@ import org.echoice.ums.config.ConfigConstants;
 import org.echoice.ums.dao.UmsClientDao;
 import org.echoice.ums.domain.EcGroup;
 import org.echoice.ums.domain.EcObjects;
-import org.echoice.ums.domain.EcUser;
 import org.echoice.ums.web.UmsAppBean;
 import org.echoice.ums.web.UmsHolder;
 import org.jasig.cas.client.authentication.AuthenticationFilter;

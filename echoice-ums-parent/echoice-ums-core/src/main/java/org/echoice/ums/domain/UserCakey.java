@@ -12,11 +12,10 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import javax.validation.constraints.NotNull;
+import javax.persistence.Transient;
 import javax.validation.constraints.Size;
 
 import org.hibernate.validator.constraints.NotBlank;
-
 import org.springframework.format.annotation.DateTimeFormat;
 
 import com.alibaba.fastjson.annotation.JSONField;
@@ -109,6 +108,11 @@ public class UserCakey extends BaseEntity implements java.io.Serializable {
     @Column(name = "op_user" ,length=64)
     private String opUser;
     
+    @Transient
+    private EcUser ecUser;
+    
+    @Transient
+    private EcGroup ecGroup;
     
 	public Long getId() {
         return this.id;
@@ -173,5 +177,22 @@ public class UserCakey extends BaseEntity implements java.io.Serializable {
     public void setOpUser(String opUser) {
         this.opUser = opUser;
     }
+
+	public EcUser getEcUser() {
+		return ecUser;
+	}
+
+	public void setEcUser(EcUser ecUser) {
+		this.ecUser = ecUser;
+	}
+
+	public EcGroup getEcGroup() {
+		return ecGroup;
+	}
+
+	public void setEcGroup(EcGroup ecGroup) {
+		this.ecGroup = ecGroup;
+	}
+    
     
 }

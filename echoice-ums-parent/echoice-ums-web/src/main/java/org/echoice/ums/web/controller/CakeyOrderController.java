@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -287,6 +288,30 @@ public class CakeyOrderController{
 	@RequestMapping(value = "downSignPdf")
 	public String downSignPdf(HttpServletRequest request,HttpServletResponse response) throws Exception{
 		String orderId=request.getParameter("orderId");
+		CakeyOrder cakeyOrder=this.cakeyOrderService.getCakeyOrderDao().findByOrderId(orderId);
+		if(cakeyOrder!=null&&StringUtils.isNotBlank(cakeyOrder.getSignPdf())) {
+			File file=new File(cakeyOrder.getSignPdf());
+			if(file.exists()) {
+				response.setContentType("application/x-msdownload"); 
+				response.setHeader("Content-Disposition", "attachment; filename=\""+ URLEncoder.encode(orderId + ".pdf", "UTF-8") + "\"");
+				FileInputStream fis=new FileInputStream(file);
+				IOUtils.copy(fis, response.getOutputStream());
+				fis.close();
+				return null;
+			}	
+		}
+		return "exception/404.html";
+	}
+	
+	/**
+	 * 下载签名PDF
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "downSignPdf/{orderId}")
+	public String downSignPdfP(@PathVariable("orderId") String orderId,HttpServletRequest request,HttpServletResponse response) throws Exception{
 		CakeyOrder cakeyOrder=this.cakeyOrderService.getCakeyOrderDao().findByOrderId(orderId);
 		if(cakeyOrder!=null&&StringUtils.isNotBlank(cakeyOrder.getSignPdf())) {
 			File file=new File(cakeyOrder.getSignPdf());

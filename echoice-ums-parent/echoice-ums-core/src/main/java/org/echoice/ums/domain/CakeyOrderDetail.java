@@ -12,11 +12,9 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 import org.hibernate.validator.constraints.NotBlank;
-
 import org.springframework.format.annotation.DateTimeFormat;
 
 import com.alibaba.fastjson.annotation.JSONField;
@@ -127,6 +125,11 @@ public class CakeyOrderDetail extends BaseEntity implements java.io.Serializable
     @Column(name = "op_user" ,length=64)
     private String opUser;
     
+    @Column(name = "group_name" ,length=256)
+    private String groupName;
+    
+    @Column(name = "job_number" ,length=64)
+    private String jobNumber;
     
 	public Long getId() {
         return this.id;
@@ -207,5 +210,20 @@ public class CakeyOrderDetail extends BaseEntity implements java.io.Serializable
     public void setOpUser(String opUser) {
         this.opUser = opUser;
     }
-    
+
+	public String getGroupName() {
+		return groupName;
+	}
+
+	public void setGroupName(String groupName) {
+		this.groupName = groupName;
+	}
+
+	public String getJobNumber() {
+		return jobNumber;
+	}
+
+	public void setJobNumber(String jobNumber) {
+		this.jobNumber = jobNumber;
+	}
 }

@@ -95,6 +95,8 @@ public class CakeyOrderDetailDaoImpl extends BaseCommonDao{
         sb.append(",t.create_user");
         sb.append(",t.op_time");
         sb.append(",t.op_user");
+        sb.append(",t.group_name");
+        sb.append(",t.job_number");
 		
 		sb.append(" from ec_cakey_order_detail t where 1=1");
 		

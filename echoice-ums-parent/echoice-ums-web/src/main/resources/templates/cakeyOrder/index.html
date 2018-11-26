@@ -143,7 +143,7 @@
               anim: 3,
               fixed:true,
               maxmin:true,
-              offset: 'lt',
+              offset: 'rt',
               area: ['600px', '100%'],
               content: $('#showCaKeyOrderDetailTp'),
               success: function(layero, index){
@@ -173,7 +173,9 @@
                             [ //表头
                               {type:'numbers',fixed: 'left'}  
                               ,{field: 'id',title: 'ID',width: 80}
+                              ,{field: 'jobNumber',title: '工号',width:120}
                               ,{field: 'name',title: '姓名',width:120}
+                              ,{field: 'groupName',title: '部门',width:120}
                               ,{field: 'idcard',title: '身份证号',width:180}
                               ,{field: 'hardwareSn',title: '硬件介质SN',width:200}
                               ,{field: 'opType',title: '操作类型',width: 120,templet:function(d){

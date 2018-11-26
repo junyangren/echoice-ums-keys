@@ -16,6 +16,7 @@ import org.echoice.ums.dao.EcUserDao;
 import org.echoice.ums.dao.UserCakeyDao;
 import org.echoice.ums.domain.CakeyOrder;
 import org.echoice.ums.domain.CakeyOrderDetail;
+import org.echoice.ums.domain.EcGroup;
 import org.echoice.ums.domain.EcUser;
 import org.echoice.ums.domain.UserCakey;
 import org.echoice.ums.service.UserCakeyService;
@@ -149,7 +150,9 @@ public class UserCakeyServiceImpl implements UserCakeyService{
 		Date now=new Date();
 		UserCakey dbUserCakey=null;
 		EcUser ecUser=ecUserDao.findOne(userId);
-		
+		//获取用户所在部门
+		List<EcGroup> ecGroups=ecUserDao.findGroupByUserId(userId);
+		String groupName=ecGroups.get(0).getName();
 		//生成临时工单，pdf签名后再更新状态
 		long count=list.size();
 		String orderId=genOrderId();
@@ -171,6 +174,8 @@ public class UserCakeyServiceImpl implements UserCakeyService{
 				cakeyOrderDetail.setCreateTime(now);
 				cakeyOrderDetail.setOpUser(UmsHolder.getUserAlias());
 				cakeyOrderDetail.setOpTime(now);
+				cakeyOrderDetail.setJobNumber(ecUser.getJobNumber());
+				cakeyOrderDetail.setGroupName(groupName);
 				cakeyOrderDetailList.add(cakeyOrderDetail);
 			}
 		}
@@ -219,7 +224,7 @@ public class UserCakeyServiceImpl implements UserCakeyService{
 			cakeyOrderDetail.setOpType(userCakey.getStatus());
 			cakeyOrderDetail.setIdcard(userCakey.getIdcard());
 			cakeyOrderDetail.setHardwareSn(userCakey.getHardwareSn());
-			cakeyOrderDetail.setName(userCakey.getUserName());
+			cakeyOrderDetail.setName(userCakey.getEcUser().getName());
 			cakeyOrderDetail.setCreateUser(UmsHolder.getUserAlias());
 			cakeyOrderDetail.setCreateTime(now);
 			cakeyOrderDetail.setOpUser(UmsHolder.getUserAlias());
@@ -268,11 +273,13 @@ public class UserCakeyServiceImpl implements UserCakeyService{
 				cakeyOrderDetail.setOpType(updateStatus);
 				cakeyOrderDetail.setIdcard(dbUserCakey.getIdcard());
 				cakeyOrderDetail.setHardwareSn(dbUserCakey.getHardwareSn());
-				cakeyOrderDetail.setName(dbUserCakey.getUserName());
+				cakeyOrderDetail.setName(dbUserCakey.getEcUser().getName());
 				cakeyOrderDetail.setCreateUser(UmsHolder.getUserAlias());
 				cakeyOrderDetail.setCreateTime(now);
 				cakeyOrderDetail.setOpUser(UmsHolder.getUserAlias());
 				cakeyOrderDetail.setOpTime(now);
+				cakeyOrderDetail.setJobNumber(dbUserCakey.getEcUser().getJobNumber());
+				cakeyOrderDetail.setGroupName(dbUserCakey.getEcGroup().getName());
 				
 				this.cakeyOrderDetailDao.save(cakeyOrderDetail);
 			}
@@ -310,7 +317,9 @@ public class UserCakeyServiceImpl implements UserCakeyService{
 				cakeyOrderDetail.setOpType(updateStatus);
 				cakeyOrderDetail.setIdcard(dbUserCakey.getIdcard());
 				cakeyOrderDetail.setHardwareSn(dbUserCakey.getHardwareSn());
-				cakeyOrderDetail.setName(dbUserCakey.getUserName());
+				cakeyOrderDetail.setName(dbUserCakey.getEcUser().getName());
+				cakeyOrderDetail.setGroupName(dbUserCakey.getEcGroup().getName());
+				cakeyOrderDetail.setJobNumber(dbUserCakey.getEcUser().getJobNumber());
 				cakeyOrderDetail.setCreateUser(UmsHolder.getUserAlias());
 				cakeyOrderDetail.setCreateTime(now);
 				cakeyOrderDetail.setOpUser(UmsHolder.getUserAlias());
@@ -356,7 +365,7 @@ public class UserCakeyServiceImpl implements UserCakeyService{
 				cakeyOrderDetail.setOpType(updateStatus);
 				cakeyOrderDetail.setIdcard(dbUserCakey.getIdcard());
 				cakeyOrderDetail.setHardwareSn(dbUserCakey.getHardwareSn());
-				cakeyOrderDetail.setName(dbUserCakey.getUserName());
+				cakeyOrderDetail.setName(dbUserCakey.getEcUser().getName());
 				cakeyOrderDetail.setCreateUser(UmsHolder.getUserAlias());
 				cakeyOrderDetail.setCreateTime(now);
 				cakeyOrderDetail.setOpUser(UmsHolder.getUserAlias());
@@ -367,7 +376,7 @@ public class UserCakeyServiceImpl implements UserCakeyService{
 			msgTip.setData(cakeyOrder);
 		}else {
 			msgTip.setCode(4002);
-			msgTip.setMsg(String.format("[%s]未找到可领取的Key，领取失败", userCakey.getGroupName()));
+			msgTip.setMsg(String.format("[%s]未找到可领取的Key，领取失败", userCakey.getEcGroup().getName()));
 		}
 		return msgTip;
 	}

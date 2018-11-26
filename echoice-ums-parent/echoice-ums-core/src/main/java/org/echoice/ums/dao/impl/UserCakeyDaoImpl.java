@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.echoice.modules.persistence.BaseCommonDao;
+import org.echoice.ums.dao.mapper.RowMapperForUserKey;
 import org.echoice.ums.domain.UserCakey;
 import org.echoice.ums.web.view.UserCakeyReportView;
 import org.springframework.data.domain.Page;
@@ -28,7 +29,7 @@ public class UserCakeyDaoImpl extends BaseCommonDao{
 		List<Object> params = new ArrayList<Object>();
 		StringBuffer sb = new StringBuffer();
 		createSQLContition(searchForm,sb,params);
-		List<UserCakey> list= getJdbcTemplate().query(sb.toString(),params.toArray(),new BeanPropertyRowMapper<UserCakey>(UserCakey.class));
+		List<UserCakey> list= getJdbcTemplate().query(sb.toString(),params.toArray(),new RowMapperForUserKey());
 		return list;
 	}
 	
@@ -36,7 +37,7 @@ public class UserCakeyDaoImpl extends BaseCommonDao{
 		List<Object> params = new ArrayList<Object>();
 		StringBuffer sb = new StringBuffer();
 		createSQLContition(searchForm,sb,params);
-		return super.findPageSQLData(sb.toString(), new BeanPropertyRowMapper<UserCakey>(UserCakey.class),pageNo, pageSize, params.toArray());
+		return super.findPageSQLData(sb.toString(), new RowMapperForUserKey(),pageNo, pageSize, params.toArray());
 	}
 	
 	private void createSQLContition(UserCakey searchForm,StringBuffer sb,List<Object> params) {
@@ -50,8 +51,9 @@ public class UserCakeyDaoImpl extends BaseCommonDao{
         sb.append(",t.op_time");
         sb.append(",t.op_user");
         sb.append(",t2.group_id");
-        sb.append(",t2.name group_name");
-        sb.append(",t3.name user_name");
+        sb.append(",t2.name groupName");
+        sb.append(",t3.name userName");
+        sb.append(",t3.job_number jobNumber");
 		
 		sb.append(" from ec_user_group t1,ec_group t2,ec_user t3,ec_user_cakey t");
 		sb.append(" where t1.group_id=t2.group_id and t1.user_id=t3.user_id and t3.idcard=t.idcard");
@@ -130,12 +132,12 @@ public class UserCakeyDaoImpl extends BaseCommonDao{
         	  
 		if(StringUtils.isNotBlank(searchForm.getIdcard())){
             sb.append(" and t.idcard like ?");
-            params.add("%"+searchForm.getIdcard()+"%");			          
+            params.add(searchForm.getIdcard()+"%");			          
 		}
         	  
 		if(StringUtils.isNotBlank(searchForm.getHardwareSn())){
             sb.append(" and t.hardware_sn like ?");
-            params.add("%"+searchForm.getHardwareSn()+"%");			          
+            params.add(searchForm.getHardwareSn()+"%");			          
 		}
         	  
 		if(StringUtils.isNotBlank(searchForm.getStatus())){
