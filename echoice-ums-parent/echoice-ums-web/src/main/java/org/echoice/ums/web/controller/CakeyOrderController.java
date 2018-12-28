@@ -270,7 +270,7 @@ public class CakeyOrderController{
 	@RequestMapping(value = "downPdf")
 	public String downPdf(HttpServletRequest request,HttpServletResponse response) throws Exception{
 		String orderId=request.getParameter("orderId");
-		response.setContentType("application/x-msdownload"); 
+		response.setContentType("application/pdf"); //application/x-msdownload
 		response.setHeader("Content-Disposition", "attachment; filename=\""+ URLEncoder.encode(orderId + ".pdf", "UTF-8") + "\"");
 		CakeyOrder cakeyOrder= cakeyOrderService.getCakeyOrderDao().findByOrderId(orderId);
 		List<CakeyOrderDetail> list=this.cakeyOrderDetailService.getCakeyOrderDetailDao().findByOrderId(orderId);
@@ -292,7 +292,7 @@ public class CakeyOrderController{
 		if(cakeyOrder!=null&&StringUtils.isNotBlank(cakeyOrder.getSignPdf())) {
 			File file=new File(cakeyOrder.getSignPdf());
 			if(file.exists()) {
-				response.setContentType("application/x-msdownload"); 
+				response.setContentType("application/pdf"); 
 				response.setHeader("Content-Disposition", "attachment; filename=\""+ URLEncoder.encode(orderId + ".pdf", "UTF-8") + "\"");
 				FileInputStream fis=new FileInputStream(file);
 				IOUtils.copy(fis, response.getOutputStream());
@@ -316,7 +316,7 @@ public class CakeyOrderController{
 		if(cakeyOrder!=null&&StringUtils.isNotBlank(cakeyOrder.getSignPdf())) {
 			File file=new File(cakeyOrder.getSignPdf());
 			if(file.exists()) {
-				response.setContentType("application/x-msdownload"); 
+				response.setContentType("application/pdf"); 
 				response.setHeader("Content-Disposition", "attachment; filename=\""+ URLEncoder.encode(orderId + ".pdf", "UTF-8") + "\"");
 				FileInputStream fis=new FileInputStream(file);
 				IOUtils.copy(fis, response.getOutputStream());

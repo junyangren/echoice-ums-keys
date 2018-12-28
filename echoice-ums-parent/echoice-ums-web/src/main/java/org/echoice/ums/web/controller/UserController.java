@@ -399,6 +399,7 @@ public class UserController {
 					if(cell!=null&&StringUtils.isNotBlank(cell.toString())) {
 						cell.setCellType(XSSFCell.CELL_TYPE_STRING);
 						tmp.setName(cell.toString().trim());
+						logger.info("tmp.getName:{}",tmp.getName());
 					}else {
 						msgTip.setCode(4002);
 						msgTip.setMsg("第"+i+"行姓名不能为空");
@@ -424,6 +425,7 @@ public class UserController {
 						cell.setCellType(XSSFCell.CELL_TYPE_STRING);
 						tmp.setJobNumber(cell.toString().trim());
 					}else {
+						msgTip.setCode(4002);
 						msgTip.setMsg("第"+i+"行工号不能为空");
 						break;
 					}
@@ -436,6 +438,7 @@ public class UserController {
 						cell.setCellType(XSSFCell.CELL_TYPE_STRING);
 						tmp.setDuty(cell.toString().trim());
 					}else {
+						msgTip.setCode(4002);
 						msgTip.setMsg("第"+i+"行职称不能为空");
 						break;
 					}
@@ -447,6 +450,7 @@ public class UserController {
 						cell.setCellType(XSSFCell.CELL_TYPE_STRING);
 						tmp.setIdcard(cell.toString().trim());
 					}else {
+						msgTip.setCode(4002);
 						msgTip.setMsg("第"+i+"行身份证不能为空");
 						break;
 					}
@@ -466,6 +470,7 @@ public class UserController {
 						cell.setCellType(XSSFCell.CELL_TYPE_STRING);
 						tmp.setGroupName(cell.toString().trim());
 					}else {
+						msgTip.setCode(4002);
 						msgTip.setMsg("第"+i+"行用户部门不能为空");
 						break;
 					}
@@ -477,6 +482,7 @@ public class UserController {
 						cell.setCellType(XSSFCell.CELL_TYPE_STRING);
 						tmp.setHardwareSn(cell.toString().trim());
 					}else {
+						msgTip.setCode(4002);
 						msgTip.setMsg("第"+i+"硬件介质SN不能为空");
 						break;
 					}
@@ -540,6 +546,7 @@ public class UserController {
 						cell.setCellType(HSSFCell.CELL_TYPE_STRING);// 设置单元格的类型 把数字当作字符串取出
 						tmp.setJobNumber(cell.toString().trim());
 					}else {
+						msgTip.setCode(4002);
 						msgTip.setMsg("第"+i+"行工号不能为空");
 						break;
 					}
@@ -552,6 +559,7 @@ public class UserController {
 						cell.setCellType(XSSFCell.CELL_TYPE_STRING);
 						tmp.setDuty(cell.toString().trim());
 					}else {
+						msgTip.setCode(4002);
 						msgTip.setMsg("第"+i+"行职称不能为空");
 						break;
 					}
@@ -563,6 +571,7 @@ public class UserController {
 						cell.setCellType(HSSFCell.CELL_TYPE_STRING);// 设置单元格的类型 把数字当作字符串取出
 						tmp.setIdcard(cell.toString().trim());
 					}else {
+						msgTip.setCode(4002);
 						msgTip.setMsg("第"+i+"行身份证不能为空");
 						break;
 					}
@@ -583,6 +592,7 @@ public class UserController {
 						cell.setCellType(XSSFCell.CELL_TYPE_STRING);
 						tmp.setGroupName(cell.toString().trim());
 					}else {
+						msgTip.setCode(4002);
 						msgTip.setMsg("第"+i+"行用户部门不能为空");
 						break;
 					}
@@ -594,6 +604,7 @@ public class UserController {
 						cell.setCellType(XSSFCell.CELL_TYPE_STRING);
 						tmp.setHardwareSn(cell.toString().trim());
 					}else {
+						msgTip.setCode(4002);
 						msgTip.setMsg("第"+i+"硬件介质不能为空");
 						break;
 					}

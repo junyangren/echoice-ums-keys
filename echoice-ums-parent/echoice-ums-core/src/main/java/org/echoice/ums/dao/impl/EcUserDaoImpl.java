@@ -161,6 +161,24 @@ public class EcUserDaoImpl extends BaseCommonDao {
 			list.add(strLike);
 		}
 		
+		if(StringUtils.isNotBlank(ecUser.getJobNumber())){
+			String strLike=ecUser.getJobNumber().trim()+"%";
+			hql2+=" and t2.jobNumber like ?";
+			list.add(strLike);
+		}
+		
+		if(StringUtils.isNotBlank(ecUser.getIdcard())){
+			String strLike=ecUser.getIdcard().trim()+"%";
+			hql2+=" and t2.idcard like ?";
+			list.add(strLike);
+		}
+		
+		if(StringUtils.isNotBlank(ecUser.getMobile())){
+			String strLike=ecUser.getMobile().trim()+"%";
+			hql2+=" and t2.mobile like ?";
+			list.add(strLike);
+		}
+		
 		if(StringUtils.isNotBlank(ecUser.getAlias())){
 			String strLike="%"+ecUser.getAlias().trim()+"%";
 			hql2+=" and t2.alias like ? ";

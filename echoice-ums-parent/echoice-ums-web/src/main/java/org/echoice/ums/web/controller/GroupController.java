@@ -180,7 +180,9 @@ public class GroupController extends UmsBaseController {
 		// TODO Auto-generated method stub
 		String id=request.getParameter("id");
 		String userId=request.getParameter("userId");
+		
 		List<ZTreeView> zTreelist = new ArrayList<ZTreeView>();
+		/**
 		if(StringUtils.isBlank(id)) {
 			 String rootId=request.getParameter("rootId");
 			 if(StringUtils.isNotBlank(rootId)){
@@ -195,7 +197,7 @@ public class GroupController extends UmsBaseController {
 			 treeView.setOpen(true);
 			 zTreelist.add(treeView);
 			 return JSON.toJSONString(zTreelist);
-		}
+		}**/
 		
 		StringBuffer bf2=new StringBuffer();
 		if(StringUtils.isNotBlank(userId)){
@@ -220,7 +222,25 @@ public class GroupController extends UmsBaseController {
 		
 		String strParentTree=bf.toString();
 		
-		List<EcGroup> childList = ecGroupDao.findGroupTreeChild(Long.valueOf(id));
+		//List<EcGroup> childList = ecGroupDao.findGroupTreeChild(Long.valueOf(id));
+		
+		boolean isAdmin=UmsHolder.isAdmin();
+		List<EcGroup> childList=null;
+		if(StringUtils.isBlank(id)) {
+			childList=new ArrayList<EcGroup>();
+			EcGroup ecGroup=null;
+			if(isAdmin) {
+				ecGroup=new EcGroup();
+				ecGroup.setGroupId(-1L);
+				ecGroup.setName("所有");
+			}else {
+				ecGroup=CasUmsUtil.getUserGroup(request);
+			}
+			childList.add(ecGroup);
+		}else {
+			childList=ecGroupDao.findGroupTreeChild(Long.valueOf(id));
+		}
+		
 		ZTreeView treeView = null;
 		String tmpId=null;
 		boolean isParent =false;

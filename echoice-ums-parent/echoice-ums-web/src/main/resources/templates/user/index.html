@@ -48,6 +48,7 @@
     <button class="layui-btn layui-btn-sm" lay-event="add"><i class="layui-icon layui-icon-add-1"></i>新增</button>
     <button class="layui-btn layui-btn-sm" lay-event="batchDel"><i class="layui-icon layui-icon-delete"></i>删除</button>
     <button class="layui-btn layui-btn-sm" lay-event="search"><i class="layui-icon layui-icon-search"></i>查询</button>
+    <button class="layui-btn layui-btn-sm" lay-event="assignRemoveGroup"><i class="layui-icon layui-icon-link"></i>分配移除组</button>
     <button class="layui-btn layui-btn-sm" lay-event="assignRemove"><i class="layui-icon layui-icon-link"></i>分配移除角色</button>
     <button class="layui-btn layui-btn-sm" lay-event="showPm"><i class="layui-icon layui-icon-auz"></i>查看权限</button>
     <button class="layui-btn layui-btn-sm" lay-event="fileBatchImport"><i class="layui-icon layui-icon-upload-circle"></i>导入用户</button>
@@ -207,6 +208,75 @@
     	    	
     	    break;
 
+            case 'assignRemoveGroup':
+                if(checkStatus.data&&checkStatus.data.length>0){
+                    layer.open({
+                        title:'分配移除用户组操作',
+                        type: 1,
+                        anim: 3,
+                        fixed:true,
+                        maxmin:true,
+                        offset: 'r',
+                        area: ['400px', '100%'],
+                        content: $('#assginGroupTp'),
+                        success: function(layero, index){
+                            //加载操作table
+                            var vUserId='';
+                            if(checkStatus.data.length==1){
+                            	vUserId=checkStatus.data[0].userId;
+                            }
+                            
+                            if(!ecApp.groupAssignTree){
+                                //加载节点树    
+                                var setting = {
+                                		check:{
+                                			enable :true,
+                                			chkboxType: { "Y" : "", "N" : "" }
+                                		},
+                                        async: {
+                                            enable: true,
+                                            url:"../group/treeAssignGroup?userId="+vUserId,
+                                            autoParam:["id"]
+                                        },
+                                        callback : {
+                                            onClick : function(event, treeId, treeNode, clickFlag){
+                                                
+                                            },
+                                            onAsyncSuccess:function(event, treeId, treeNode, msg){
+                                                if(treeNode===undefined){
+                                                    var treeObj = $.fn.zTree.getZTreeObj(treeId);
+                                                    var rootNode=treeObj.getNodeByParam("id", -1, null);
+                                                    treeObj.expandNode(rootNode, true, true, true);
+                                                }
+                                            }
+                                        }   
+                                };
+                                
+                                ecApp.groupAssignTree=jQuery.fn.zTree.init($("#groupTreeId"), setting);                                
+                            }
+                            
+                        },
+                        cancel: function(index, layero){
+                        	ecApp.groupAssignTree.destroy();
+                        	ecApp.groupAssignTree=null;
+                            $(this.content).hide();
+                        },
+                        btnAlign: 'l',
+                        btn: ['分配', '移除'],
+                        yes:function(index, layero){
+                            ecApp.assignGroupPm(checkStatus,'assignGroup');
+                            return false
+                        },
+                        btn2:function(index, layero){
+                            ecApp.assignGroupPm(checkStatus,'removeAssignGroup');
+                            return false
+                        }
+                    });
+                }else{
+                    layer.msg('请选择要操作的记录');
+                }
+            break;     	    
+    	    
             case 'assignRemove':
                 if(checkStatus.data&&checkStatus.data.length>0){
                     layer.open({
@@ -613,6 +683,36 @@
         }else{
         	
         }
+    }
+    
+    ecApp.assignGroupPm=function(objCheckStatus,opType){
+        //查看选中角色的节点
+        var groupCheckNodes = ecApp.groupAssignTree.getCheckedNodes(true);
+        if(groupCheckNodes&&groupCheckNodes.length>0){
+            var selRowsIdArr=[];
+            $.each(objCheckStatus.data,function(index,oneRec){
+                selRowsIdArr[selRowsIdArr.length]=oneRec.userId;
+            });
+            
+            var groupRowsIdArr=[];
+            $.each(groupCheckNodes,function(index,oneRec){
+            	groupRowsIdArr[groupRowsIdArr.length]=oneRec.id;
+            });
+            
+            var userIdsStr=JSON.stringify(selRowsIdArr);
+            var groupIdsStr=JSON.stringify(groupRowsIdArr);
+
+            var sfJson={};
+            sfJson.userIds=userIdsStr;
+            sfJson.groupIds=groupIdsStr;
+            var rnd=parseInt(Math.random()*1000000);
+            sfJson.rnd=rnd;
+            $.post('../usersAssignmen/'+opType,sfJson,function(resp){
+                layer.alert(resp.msg);
+            },"json");
+        }else{
+        	
+        }
     }    
     
 });
@@ -667,7 +767,7 @@
       <div class="layui-form-item">
         <label class="layui-form-label">身份证号</label>
         <div class="layui-input-block">
-          <input type="text" name="identity" lay-verify="" maxlength="32" placeholder="身份证号" autocomplete="off" class="layui-input">
+          <input type="text" name="idcard" lay-verify="" maxlength="32" placeholder="身份证号" autocomplete="off" class="layui-input">
         </div>
       </div>      
       <div class="layui-form-item">
@@ -741,7 +841,32 @@
  
  <div id="searchFormTp" style="display:none;">
    <div style="width: 98%;padding-top: 12px">
-    <form id="ec-search-form" class="layui-form" lay-filter="ec-search-form" action="">      
+    <form id="ec-search-form" class="layui-form" lay-filter="ec-search-form" action="">
+      <div class="layui-form-item">
+        <label class="layui-form-label">工号</label>
+        <div class="layui-input-block">
+          <input type="text" name="jobNumber" maxlength="64" placeholder="请输入工号"  autocomplete="off" class="layui-input">
+        </div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">姓名</label>
+        <div class="layui-input-block">
+          <input type="text" name="name" maxlength="64" placeholder="请输入名称" autocomplete="off" class="layui-input">
+        </div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">身份证号</label>
+        <div class="layui-input-block">
+          <input type="text" name="idcard" maxlength="32" placeholder="身份证号" autocomplete="off" class="layui-input">
+        </div>
+      </div>      
+      <div class="layui-form-item">
+        <label class="layui-form-label">手机</label>
+        <div class="layui-input-block">
+          <input type="number" name="mobile" maxlength="32" placeholder="请输入手机" autocomplete="off" class="layui-input">
+        </div>
+      </div>    
+      <!--      
       <div class="layui-form-item">
         <label class="layui-form-label">登入名</label>
         <div class="layui-input-block">
@@ -762,7 +887,7 @@
             <option value="n">禁用</option>
           </select>
         </div>
-      </div>
+      </div>-->
       <div class="layui-form-item" id="btnGroup">
         <div class="layui-input-block">
           <button class="layui-btn" lay-submit lay-filter="searchFormBtn">查询</button>
@@ -777,6 +902,14 @@
    <div class="layui-row">
     <div class="layui-col-xs12" style="max-height:400px;overflow: auto">
       <ul id="roleTreeId" class="ztree"></ul>
+    </div>
+  </div>        
+ </div>
+ 
+ <div id="assginGroupTp" style="display:none;">
+   <div class="layui-row">
+    <div class="layui-col-xs12" style="max-height:400px;overflow: auto">
+      <ul id="groupTreeId" class="ztree"></ul>
     </div>
   </div>        
  </div>
@@ -830,7 +963,25 @@
               <option value="">选择列</option>
            </select>
         </div>
-      </div>            
+      </div>
+      
+      <div class="layui-form-item">
+        <label class="layui-form-label">工号</label>
+        <div class="layui-input-inline">
+           <select name="jobNumber" required lay-verify="required">
+              <option value="">选择列</option>
+           </select>
+        </div>
+      </div>
+      
+      <div class="layui-form-item">
+        <label class="layui-form-label">职称</label>
+        <div class="layui-input-inline">
+           <select name="duty" required lay-verify="required">
+              <option value="">选择列</option>
+           </select>
+        </div>
+      </div>                  
 
       <div class="layui-form-item">
         <label class="layui-form-label">身份证号</label>

@@ -70,12 +70,12 @@ public class LoginController{
 		MD5 md5=new MD5();
 		String userPassWord=md5.getMD5ofStr(userAlias+password);
 		//用户密码校验
-		
+		/**
 		if(!(StringUtils.equalsIgnoreCase(passWordDb, userPassWord))){
 			msgTip.setCode(302);
 			msgTip.setMsg("对不起，用户密码错误");
 			return msgTip;	
-		}
+		}**/
 		
 		request.getSession().removeAttribute(CaptchaImageCreateController.KEY_CAPTCHA);
 		request.getSession().setAttribute(CasUtil.CONST_CAS_ASSERTION, ecUser.getAlias());

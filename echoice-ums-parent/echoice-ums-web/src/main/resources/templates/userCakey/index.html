@@ -23,7 +23,7 @@
     	#signature {
 			border: 2px dotted black;
 			background-color:lightgrey;
-			height: 100%;
+			height: 300px;
 		}
     </style>
 </head>
@@ -206,6 +206,8 @@
             ,{field: 'alias',title: '帐号',width: 150}
             ,{field: 'name',title: '姓名',width: 150,sort: false}
             ,{field: 'idcard',title: '身份证号',width: 150,sort: false}
+            ,{field: 'jobNumber',title: '工号',width: 150,sort: false}
+            ,{field: 'duty',title: '职务',width: 150,sort: false}
             ,{field: 'mobile',title: '手机',width: 120,sort: false}
             ,{field: 'status',title: '状态',width: 60,align:'center',templet: '#statusTpl'}
             ,{field: 'opTime',title: '操作时间',width: 120,align:'center'},
@@ -223,7 +225,7 @@
             fixed:true,
             maxmin:true,
             offset: layerOffsetV,
-            area: ['60%','100%'],
+            area: ['100%','100%'],
             content: $('#editFormTp'),
             success: function(layero, index){
                 form.val("ec-edit-form",formData);
@@ -423,7 +425,7 @@
                             	  }else if(d.status==='02'){
                             		  return '已领取';
                             	  }else if(d.status==='03'){
-                                      return '已丢失';
+                                      return '<span style="color:red;font-weight:bold">已丢失<span>';
                                   }else if(d.status==='04'){
                                       return '离职归还';
                                   }else{
@@ -740,26 +742,45 @@
  
  <div id="searchFormTp" style="display:none;">
    <div style="width: 98%;padding-top: 12px">
-    <form id="ec-search-form" class="layui-form" lay-filter="ec-search-form" action="">      
+    <form id="ec-search-form" class="layui-form" lay-filter="ec-search-form" action="">
+    
       <div class="layui-form-item">
-        <label class="layui-form-label">帐号</label>
+        <label class="layui-form-label">工号</label>
         <div class="layui-input-block">
-          <input type="text" name="alias" maxlength="64" placeholder="请输入帐号" autocomplete="off" class="layui-input">
+          <input type="text" name="jobNumber" maxlength="64" placeholder="请输入工号"  autocomplete="off" class="layui-input">
         </div>
       </div>
       <div class="layui-form-item">
         <label class="layui-form-label">姓名</label>
         <div class="layui-input-block">
-          <input type="text" name="name" maxlength="64" placeholder="请输入姓名" autocomplete="off" class="layui-input">
+          <input type="text" name="name" maxlength="64" placeholder="请输入名称" autocomplete="off" class="layui-input">
         </div>
       </div>
       <div class="layui-form-item">
         <label class="layui-form-label">身份证号</label>
         <div class="layui-input-block">
-          <input type="text" name="idcard" maxlength="64" placeholder="请输入身份证号" autocomplete="off" class="layui-input">
+          <input type="text" name="idcard" maxlength="32" placeholder="身份证号" autocomplete="off" class="layui-input">
+        </div>
+      </div>      
+      <div class="layui-form-item">
+        <label class="layui-form-label">手机</label>
+        <div class="layui-input-block">
+          <input type="number" name="mobile" maxlength="32" placeholder="请输入手机" autocomplete="off" class="layui-input">
+        </div>
+      </div>    
+      <!--      
+      <div class="layui-form-item">
+        <label class="layui-form-label">登入名</label>
+        <div class="layui-input-block">
+          <input type="text" name="alias" maxlength="64" placeholder="请输入标识" autocomplete="off" class="layui-input">
         </div>
       </div>
-      
+      <div class="layui-form-item">
+        <label class="layui-form-label">名称</label>
+        <div class="layui-input-block">
+          <input type="text" name="name" maxlength="64" placeholder="请输入名称" autocomplete="off" class="layui-input">
+        </div>
+      </div>
       <div class="layui-form-item">
         <label class="layui-form-label">状态</label>
         <div class="layui-input-inline">
@@ -768,7 +789,7 @@
             <option value="n">禁用</option>
           </select>
         </div>
-      </div>
+      </div>-->          
       <div class="layui-form-item" id="btnGroup">
         <div class="layui-input-block">
           <button class="layui-btn" lay-submit lay-filter="searchFormBtn">查询</button>
