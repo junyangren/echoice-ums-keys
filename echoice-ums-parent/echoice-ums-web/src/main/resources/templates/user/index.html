@@ -50,8 +50,9 @@
     <button class="layui-btn layui-btn-sm" lay-event="search"><i class="layui-icon layui-icon-search"></i>查询</button>
     <button class="layui-btn layui-btn-sm" lay-event="assignRemoveGroup"><i class="layui-icon layui-icon-link"></i>分配移除组</button>
     <button class="layui-btn layui-btn-sm" lay-event="assignRemove"><i class="layui-icon layui-icon-link"></i>分配移除角色</button>
-    <button class="layui-btn layui-btn-sm" lay-event="showPm"><i class="layui-icon layui-icon-auz"></i>查看权限</button>
-    <button class="layui-btn layui-btn-sm" lay-event="fileBatchImport"><i class="layui-icon layui-icon-upload-circle"></i>导入用户</button>
+    <button class="layui-btn layui-btn-sm" lay-event="showPm"><i class="layui-icon layui-icon-auz"></i>权限</button>
+    <button class="layui-btn layui-btn-sm" lay-event="fileBatchImport"><i class="layui-icon layui-icon-upload-circle"></i>导入</button>
+    <button class="layui-btn layui-btn-sm" lay-event="refresh"><i class="layui-icon layui-icon-refresh"></i>刷新</button>
   </div>
 </script>
 
@@ -466,7 +467,9 @@
                 
             break;            
             
-            
+            case 'refresh':
+            	ecApp.refreshTreeAndTable();
+            break;
     	  };
     	});
     
@@ -769,7 +772,13 @@
         <div class="layui-input-block">
           <input type="text" name="idcard" lay-verify="" maxlength="32" placeholder="身份证号" autocomplete="off" class="layui-input">
         </div>
-      </div>      
+      </div>  
+      <div class="layui-form-item">
+        <label class="layui-form-label">用户类型</label>
+        <div class="layui-input-block">
+          <input type="text" name="type" maxlength="32" lay-verify="" placeholder="请输用户类型 " autocomplete="off" class="layui-input">
+        </div>
+      </div>          
       <div class="layui-form-item">
         <label class="layui-form-label">手机</label>
         <div class="layui-input-block">
@@ -799,16 +808,16 @@
       </div>      
 
       <div class="layui-form-item">
-        <label class="layui-form-label">地址</label>
+        <label class="layui-form-label">职称</label>
         <div class="layui-input-block">
-          <input type="text" name="address" maxlength="128" placeholder="请输入地址" autocomplete="off" class="layui-input">
+          <input type="text" name="duty" maxlength="128" placeholder="请输入职称" autocomplete="off" class="layui-input">
         </div>
       </div>
       
       <div class="layui-form-item layui-form-text">
-        <label class="layui-form-label">职称</label>
+        <label class="layui-form-label">地址</label>
         <div class="layui-input-block">
-          <textarea name="duty" placeholder="请输入职责" class="layui-textarea"></textarea>
+          <textarea name="address" placeholder="请输入地址" class="layui-textarea"></textarea>
         </div>
       </div>                   
                   

@@ -16,7 +16,7 @@ public interface UserCakeyDao extends JpaRepository<UserCakey,Long>,JpaSpecifica
 	
 	public Page<UserCakey> findAdvancedPageList(UserCakey searchForm, int pageNo, int pageSize);
 	
-	public List<UserCakey> findAdvancedList(UserCakey searchForm);
+	public List<UserCakey> findAdvancedList(UserCakey searchForm,String userIds);
 	
 	@Query("select count(1) from UserCakey t where t.idcard=?1 and t.hardwareSn=?2")
 	public Long countByIdcardAndHardwareSn(String idcard,String hardwareSn);

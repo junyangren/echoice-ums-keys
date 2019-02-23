@@ -146,6 +146,8 @@ public class UserCakeyServiceImpl implements UserCakeyService{
 		}
 	}
 	
+
+	
 	public CakeyOrder createIssueByUserTmpOrder(Long userId,List<UserCakey> list,String updateStatus) {
 		Date now=new Date();
 		UserCakey dbUserCakey=null;
@@ -291,11 +293,24 @@ public class UserCakeyServiceImpl implements UserCakeyService{
 		return msgTip;
 	}
 	
+	@Transactional
+	public CakeyOrder createIssueByUserArraysTmpOrder(String idsStr) {
+		UserCakey userCakey=new UserCakey();
+		userCakey.setStatus("01");
+		return createIssueTmpOrder(userCakey,idsStr);
+	}
+	
+	@Transactional
 	public CakeyOrder createIssueByDeptTmpOrder(UserCakey userCakey) {
+		return createIssueTmpOrder(userCakey,null);
+	}
+	
+	@Transactional
+	public CakeyOrder createIssueTmpOrder(UserCakey userCakey,String userIds) {
 		CakeyOrder cakeyOrder=null;
 		Date now=new Date();
 		userCakey.setStatus("01");
-		List<UserCakey> list=this.userCakeyDao.findAdvancedList(userCakey);
+		List<UserCakey> list=this.userCakeyDao.findAdvancedList(userCakey,userIds);
 		if(list!=null&&list.size()>0) {
 			String updateStatus="02";
 			long count=list.size();
@@ -331,12 +346,13 @@ public class UserCakeyServiceImpl implements UserCakeyService{
 		return cakeyOrder;
 	}
 	
+	
 	@Transactional
 	public MsgTipExt saveIssueByDept(UserCakey userCakey) {
 		MsgTipExt msgTip=new MsgTipExt();
 		Date now=new Date();
 		userCakey.setStatus("01");
-		List<UserCakey> list=this.userCakeyDao.findAdvancedList(userCakey);
+		List<UserCakey> list=this.userCakeyDao.findAdvancedList(userCakey,null);
 		if(list!=null&&list.size()>0) {
 
 			String updateStatus="02";

@@ -67,6 +67,7 @@
     <button class="layui-btn layui-btn-sm" lay-event="add"><i class="layui-icon layui-icon-add-1"></i>新增KEY</button>
     <button class="layui-btn layui-btn-sm" lay-event="fileBatchImport"><i class="layui-icon layui-icon-upload-drag"></i>批量导入KEY</button>
     <button class="layui-btn layui-btn-sm" lay-event="issueDept"><i class="layui-icon layui-icon-group"></i>按部门领取</button>
+	<button class="layui-btn layui-btn-sm" lay-event="issueUser"><i class="layui-icon layui-icon-group"></i>按人员领取</button>
   </div>
 </script>
 
@@ -137,7 +138,7 @@
             	$(this.content).hide();
             },
             btn: ['确认'],
-            yes: function(index, layero){
+            yes: function(signPdfCommitIndex, layero){
                var signPdfV='';
                var datapair = ecApp.signatureObj.jSignature("getData", "image");
                signPdfV=datapair[1];
@@ -153,15 +154,35 @@
        	     		   data:pdfUploadJson,
        	     		   dataType:'json',
        	     		   success:function(resp){
-       	     			  layer.alert(resp.msg);
-       	     			  if(resp.code===0){
+       	     			  if(device.ios||device.android){
+       	     				  alert(resp.msg);
+       	     				  if(resp.code===0){
+        	     			     layer.close(signPdfCommitIndex);
+           	     				 if(callBackFun){
+           	     					callBackFun();
+           	     				 }
+           	     			  }       	     				  
+       	     			  }else{
+           	     			  layer.alert(resp.msg,function(alertMsgindex){
+           	     				  if(resp.code===0){
+           	     			         layer.close(signPdfCommitIndex);
+              	     				 if(callBackFun){
+              	     					callBackFun();
+              	     				 }
+              	     			  }
+           	     				  layer.close(alertMsgindex);
+           	     			  });       	     				  
+       	     			  } 
+
+       	     			  /**
+  	     				  if(resp.code===0){
+    	     			     layer.close(index);
        	     				 if(callBackFun){
        	     					callBackFun();
        	     				 }
-       	     			  }
+       	     			  }**/       	     			  
        	     		   },complete:function(){
        	     			   layer.close(curLayerIndex2);
-       	     			   layer.close(index);
        	     		   },error:function(){
        	     			   layer.alert("操作失败，请重试！");
        	     		   }
@@ -330,7 +351,7 @@
             
             case 'issueDept':
                 if(ecApp.ztree.currentNode){
-                    layer.confirm('您确认要生成【'+ecApp.ztree.currentNode.name+"】部门的领取单吗？", function(index){
+                    layer.confirm('您确认要生成【'+ecApp.ztree.currentNode.name+'】部门的领取单吗？', function(index){
                         layer.close(index);
                         var sfJson={};
                         var rnd=parseInt(Math.random()*10000);
@@ -364,6 +385,45 @@
                 }            
             break;
             
+            case 'issueUser':
+            	if(checkStatus.data&&checkStatus.data.length>=1){
+            		layer.confirm('您确认生成领取单吗？', function(index){
+                        layer.close(index);
+                		var selRowsIdArr=[];
+    					$.each(checkStatus.data,function(index,oneRec){
+    					 	selRowsIdArr[selRowsIdArr.length]=oneRec.userId;
+    					});
+    					var idsStr=JSON.stringify(selRowsIdArr);
+
+    		            var sfJson={};
+    		            var rnd=parseInt(Math.random()*10000);
+    		            sfJson.rnd=rnd;
+    		            sfJson.selIds=idsStr;
+                        $.ajax({
+                            type:"POST",
+                            url:"./createIssueByUserArraysTmpOrder",
+                            data:sfJson,
+                            dataType:'json',
+                            success:function(resp){
+                         	   if(resp.code==0){
+                         		   ecApp.uploadSignPdf(resp);
+                         	   }else{
+                         		   layer.alert(resp.msg);
+                         	   }
+                            },
+                            complete:function(){
+                                layer.close(curLayerIndex);
+                            },
+                            error:function(){
+                                layer.alert("操作失败，请重试！");
+                            }
+                         });                        
+            		});
+            		
+            	}else{
+            		layer.alert('请至少选择一个用户');
+            	}
+            break;
     	  };
     	});
     

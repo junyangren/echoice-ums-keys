@@ -54,6 +54,7 @@ public class EcUser implements java.io.Serializable {
 	private String duty;
 	private Long leaderId;
 	private String idcard;
+	private String type;//用户类型
 	
 	private List<EcGroup> groupList=new ArrayList<EcGroup>();  
 	private Set<EcUserGroup> ecUserGroups = new HashSet<EcUserGroup>(0);
@@ -273,6 +274,15 @@ public class EcUser implements java.io.Serializable {
 
 	public void setIdcard(String idcard) {
 		this.idcard = idcard;
+	}
+
+	@Column(name = "type")
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
 	}
 	
 	

@@ -155,6 +155,31 @@ public class UserCakeyController{
 		return respStr;
 	}
 	
+	/**
+	 * 选择多个用户领取keys
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "createIssueByUserArraysTmpOrder",method = RequestMethod.POST,produces=MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ResponseBody
+	public String createIssueByUserArraysTmpOrder(HttpServletRequest request) {
+		MsgTipExt msgTip=new MsgTipExt();
+		String ids=request.getParameter("selIds");
+		Object idsArr[]=JSON.parseArray(ids).toArray();
+		String idsStr=StringUtils.join(idsArr, ",");
+		try{
+			CakeyOrder cakeyOrder=userCakeyService.createIssueByUserArraysTmpOrder(idsStr);
+			createTmpOrder(cakeyOrder,request,msgTip);
+		}catch (Exception e) {
+			// TODO: handle exception
+			logger.error("异常：",e);
+			msgTip.setCode(4002);
+			msgTip.setMsg("异常："+e.getMessage());
+		}
+		String respStr=JSON.toJSONString(msgTip);
+		return respStr;
+	}	
+	
 	private void createTmpOrder(CakeyOrder cakeyOrder,HttpServletRequest request,MsgTipExt msgTip) throws Exception{
 		if(cakeyOrder!=null) {
 			request.getSession().setAttribute(SESSION_CAKEYORDER, cakeyOrder);

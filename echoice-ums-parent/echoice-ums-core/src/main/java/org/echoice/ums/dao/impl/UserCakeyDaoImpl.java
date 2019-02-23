@@ -25,10 +25,10 @@ public class UserCakeyDaoImpl extends BaseCommonDao{
 		return list;
 	}
 	
-	public List<UserCakey> findAdvancedList(UserCakey searchForm) {
+	public List<UserCakey> findAdvancedList(UserCakey searchForm,String userIds) {
 		List<Object> params = new ArrayList<Object>();
 		StringBuffer sb = new StringBuffer();
-		createSQLContition(searchForm,sb,params);
+		createSQLContition(searchForm,userIds,sb,params);
 		List<UserCakey> list= getJdbcTemplate().query(sb.toString(),params.toArray(),new RowMapperForUserKey());
 		return list;
 	}
@@ -36,11 +36,11 @@ public class UserCakeyDaoImpl extends BaseCommonDao{
 	public Page<UserCakey> findAdvancedPageList(UserCakey searchForm, int pageNo, int pageSize) {
 		List<Object> params = new ArrayList<Object>();
 		StringBuffer sb = new StringBuffer();
-		createSQLContition(searchForm,sb,params);
+		createSQLContition(searchForm,null,sb,params);
 		return super.findPageSQLData(sb.toString(), new RowMapperForUserKey(),pageNo, pageSize, params.toArray());
 	}
 	
-	private void createSQLContition(UserCakey searchForm,StringBuffer sb,List<Object> params) {
+	private void createSQLContition(UserCakey searchForm,String userIds,StringBuffer sb,List<Object> params) {
 		sb.append("select ");
         sb.append("t.id");
         sb.append(",t.idcard");
@@ -58,53 +58,59 @@ public class UserCakeyDaoImpl extends BaseCommonDao{
 		sb.append(" from ec_user_group t1,ec_group t2,ec_user t3,ec_user_cakey t");
 		sb.append(" where t1.group_id=t2.group_id and t1.user_id=t3.user_id and t3.idcard=t.idcard");
 		
-		if(searchForm.getId()!=null){
-			sb.append(" and t.id = ?");
-			params.add(searchForm.getId());
+		if(StringUtils.isNotBlank(userIds)) {
+			sb.append(" and t3.user_id in("+userIds+")");
 		}
-        	  
-		if(StringUtils.isNotBlank(searchForm.getIdcard())){
-            sb.append(" and t.idcard = ?");
-            params.add(searchForm.getIdcard()+"%");			          
+		
+		if(searchForm!=null) {
+			if(searchForm.getId()!=null){
+				sb.append(" and t.id = ?");
+				params.add(searchForm.getId());
+			}
+	        	  
+			if(StringUtils.isNotBlank(searchForm.getIdcard())){
+	            sb.append(" and t.idcard = ?");
+	            params.add(searchForm.getIdcard()+"%");			          
+			}
+	        	  
+			if(StringUtils.isNotBlank(searchForm.getHardwareSn())){
+	            sb.append(" and t.hardware_sn = ?");
+	            params.add(searchForm.getHardwareSn());
+			}
+	        	  
+			if(StringUtils.isNotBlank(searchForm.getStatus())){
+				sb.append(" and t.status = ?");
+				params.add(searchForm.getStatus());
+			}
+	        	  
+	        	  
+			if(StringUtils.isNotBlank(searchForm.getCreateUser())){
+				sb.append(" and t.create_user = ?");
+				params.add(searchForm.getCreateUser());
+			}
+	        	  
+	        	  
+			if(StringUtils.isNotBlank(searchForm.getOpUser())){
+				sb.append(" and t.op_user = ?");
+				params.add(searchForm.getOpUser());
+			}
+	        	  
+	        if(StringUtils.isNotBlank(searchForm.getAppFormStartTime())){
+	            sb.append(" and t.op_time >= ?");
+	            params.add(searchForm.getAppFormStartTime());
+	        }
+	        
+	        if(StringUtils.isNotBlank(searchForm.getAppFormEndTime())){
+	            sb.append(" and t.op_time <= ?");
+	            params.add(searchForm.getAppFormEndTime());
+	        }
+	        
+	        if(searchForm.getGroupId()!=null){
+	            sb.append(" and t2.group_id = ?");
+	            params.add(searchForm.getGroupId());
+	        }
 		}
-        	  
-		if(StringUtils.isNotBlank(searchForm.getHardwareSn())){
-            sb.append(" and t.hardware_sn = ?");
-            params.add(searchForm.getHardwareSn());
-		}
-        	  
-		if(StringUtils.isNotBlank(searchForm.getStatus())){
-			sb.append(" and t.status = ?");
-			params.add(searchForm.getStatus());
-		}
-        	  
-        	  
-		if(StringUtils.isNotBlank(searchForm.getCreateUser())){
-			sb.append(" and t.create_user = ?");
-			params.add(searchForm.getCreateUser());
-		}
-        	  
-        	  
-		if(StringUtils.isNotBlank(searchForm.getOpUser())){
-			sb.append(" and t.op_user = ?");
-			params.add(searchForm.getOpUser());
-		}
-        	  
-        if(StringUtils.isNotBlank(searchForm.getAppFormStartTime())){
-            sb.append(" and t.op_time >= ?");
-            params.add(searchForm.getAppFormStartTime());
-        }
-        
-        if(StringUtils.isNotBlank(searchForm.getAppFormEndTime())){
-            sb.append(" and t.op_time <= ?");
-            params.add(searchForm.getAppFormEndTime());
-        }
-        
-        if(searchForm.getGroupId()!=null){
-            sb.append(" and t2.group_id = ?");
-            params.add(searchForm.getGroupId());
-        }
-        
+
 		sb.append(" order by t.idcard asc ");
 	}
 	

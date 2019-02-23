@@ -59,6 +59,13 @@ public interface UserCakeyService {
 	public CakeyOrder createIssueByUserTmpOrder(Long userId,List<UserCakey> list,String updateStatus);
 	
 	/**
+	 * 根据选择要领取key的用户创建领取工单
+	 * @param idsStr
+	 * @return
+	 */
+	public CakeyOrder createIssueByUserArraysTmpOrder(String idsStr);
+	
+	/**
 	 * 创建领取临时工单
 	 * @param userCakey
 	 * @return
