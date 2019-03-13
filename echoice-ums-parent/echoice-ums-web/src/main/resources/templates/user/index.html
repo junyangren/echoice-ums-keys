@@ -126,14 +126,16 @@
         cols: [
           [ //表头
         	{type:'checkbox',fixed: 'left'}  
-            ,{field: 'userId',title: 'ID',width: 80,align:'center',sort: false}
-            ,{field: 'alias',title: '帐号',width: 150}
-            ,{field: 'name',title: '姓名',width: 150,sort: false}
-            ,{field: 'idcard',title: '身份证号',width: 150,sort: false}
+            ,{field: 'userId',title: 'ID',width: 80,align:'center',sort: false,hide:true}
+            ,{field: 'alias',title: '帐号',width: 150,hide:true}
+            ,{field: 'name',title: '姓名',width: 120,sort: false}
+            ,{field: 'idcard',title: '身份证号',width: 180,sort: false}
+            ,{field: 'jobNumber',title: '工号',width: 100,sort: false}
+            ,{field: 'duty',title: '职务',width: 120,sort: false}
             ,{field: 'mobile',title: '手机',width: 120,sort: false}
-            ,{field: 'status',title: '状态',width: 60,align:'center',templet: '#statusTpl'}
-            ,{field: 'opTime',title: '操作时间',width: 120,align:'center'},
-            ,{field: 'taxis',title: '排序',width: 80,align:'center',sort: false}
+            ,{field: 'status',title: '状态',width: 60,align:'center',templet: '#statusTpl',hide:true}
+            ,{field: 'opTime',title: '操作时间',width: 120,align:'center',hide:true},
+            ,{field: 'taxis',title: '排序',width: 80,align:'center',sort: false,hide:true}
             ,{fixed: 'right',width: 180,align: 'center',toolbar: '#ecColTool'}
           ]
         ]
