@@ -67,11 +67,12 @@
 
     layui.config({
         base: ecApp.context+'js/'
-    }).use(['jquery','layer', 'form','table','laytpl'], function(){
+    }).use(['jquery','layer', 'form','table','laytpl','upload'], function(){
     var $ = jQuery,
     layer = layui.layer,
     table = layui.table,
     form = layui.form,
+    upload = layui.upload,
     laytpl=layui.laytpl;
 
     var device = layui.device();
@@ -138,6 +139,38 @@
                 }else{
                     $('#btnGroup').hide();
                 }
+                $('#uploadTipText').html('');
+            	if(!ecApp.uploadInst){
+                    ecApp.uploadInst = upload.render({
+                        elem : '#iconFile' //绑定元素
+                        ,url : '../objects/fileUpload' //上传接口
+                        ,accept: 'images' //普通文件
+                        ,exts : 'icon|png|jpeg|bmp|jpg'
+                        ,auto : true //选择文件后自动上传
+                        ,before : function(obj) {
+                              //预读本地文件示例，不支持ie8
+                              obj.preview(function(index, file, result){
+                                  $('#uploadTipText').html(file.name);
+                              });
+                            layer.load(); //上传loading
+                        },
+                        done : function(res) {
+                            layer.closeAll('loading'); //关闭loading
+                            layer.alert(res.msg);
+                            //上传完毕回调
+                            if (res.code == 0){
+                                $("#icon").val(res.data.filePath);
+                                return;
+                            } else {
+                                return;
+                            }
+                        },
+                        error : function() {
+                            //请求异常回调
+                            layer.closeAll('loading'); //关闭loading
+                        }
+                    });                     		
+            	}                
                 
                 if(selId){//detail、edit
                     $.get('./edit?objId='+selId,function(respData){
@@ -490,6 +523,18 @@
           <input type="text" name="type" maxlength="32" required lay-verify="required" placeholder="请输入类型" autocomplete="off" class="layui-input">
         </div>
       </div>
+      
+      <div class="layui-form-item">
+        <label class="layui-form-label">图标</label>
+        <div class="layui-input-inline">
+          	<button type="button" class="layui-btn layui-btn-normal" id="iconFile" name="iconFile" >
+                <i class="layui-icon">&#xe67c;</i>上传图标
+            </button>
+            <p style="padding: 0 10px;color: #999" id="uploadTipText"></p>
+            <input type="hidden" id="icon" name="icon" />
+        </div>
+      </div>      
+      
       <div class="layui-form-item">
         <label class="layui-form-label">状态</label>
         <div class="layui-input-inline">
@@ -509,18 +554,21 @@
         <label class="layui-form-label">备注</label>
         <div class="layui-input-block">
           <textarea name="note" placeholder="请输入备注" class="layui-textarea"></textarea>
+          <p>应用地址</p>
         </div>
       </div>      
       <div class="layui-form-item layui-form-text">
         <label class="layui-form-label">备注2</label>
         <div class="layui-input-block">
           <textarea name="note2" placeholder="请输入备注" class="layui-textarea"></textarea>
+          <p>BS应用打开浏览器(IE/Chrome/360/liebao/qqBrowser/sogouBrowser)</p>
         </div>
       </div>
       <div class="layui-form-item layui-form-text">
         <label class="layui-form-label">备注3</label>
         <div class="layui-input-block">
           <textarea name="note3" placeholder="请输入备注" class="layui-textarea"></textarea>
+          <p>CS应用系统路径多个地址以英文分号隔开</p>
         </div>
       </div>
       <div class="layui-form-item" id="btnGroup">

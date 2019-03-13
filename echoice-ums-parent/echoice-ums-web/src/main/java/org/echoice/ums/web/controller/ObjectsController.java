@@ -1,8 +1,11 @@
 package org.echoice.ums.web.controller;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -11,16 +14,22 @@ import org.apache.commons.lang3.StringUtils;
 import org.echoice.modules.web.MsgTip;
 import org.echoice.modules.web.paper.PageBean;
 import org.echoice.modules.web.ztree.ZTreeView;
+import org.echoice.ums.config.ConfigBean;
 import org.echoice.ums.dao.EcObjectsDao;
 import org.echoice.ums.domain.EcObjects;
+import org.echoice.ums.util.FileUtil;
 import org.echoice.ums.util.JSONUtil;
 import org.echoice.ums.web.view.MsgTipExt;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.alibaba.fastjson.JSON;
 
@@ -30,9 +39,13 @@ import com.alibaba.fastjson.JSON;
 public class ObjectsController{
 	private static final String PAGE_SIZE="20";
 	private static final String[] EXCLUDE_FIELDS=new String[]{"ecOperators"};
+	private Logger logger=LoggerFactory.getLogger(this.getClass());
 	
 	@Autowired
 	private EcObjectsDao ecObjectsDao;
+	
+	@Autowired
+	private ConfigBean configBean;
 
 	@RequestMapping("index")
 	public String index() throws Exception {
@@ -153,6 +166,32 @@ public class ObjectsController{
 	}
 	
 	/**
+	 * 保存文件到服务器
+	 * @param linkPerson
+	 * @param file
+	 * @param request
+	 * @return 返回保存的文件路径 以及列数
+	 */
+	@RequestMapping(value = "fileUpload",method = RequestMethod.POST)
+	@ResponseBody
+	public MsgTipExt fileUpload(MultipartFile file,HttpServletRequest request,HttpServletResponse resp) {
+		MsgTipExt msgTip=new MsgTipExt();
+		msgTip.setMsg("文件上传成功");
+		String originalFilename = file.getOriginalFilename();
+		try {
+			String filePath=FileUtil.saveFile(originalFilename,getConfigBean().getIconPath(), file.getInputStream());
+			Map<String,Object> map=new HashMap<String,Object>();
+			map.put("filePath", filePath);
+			msgTip.setData(map);
+		} catch (IOException e) {
+			logger.error("文件上传失败：",e);
+			msgTip.setCode(4002);
+			msgTip.setMsg("文件上传失败："+e.getMessage());
+		}
+		return msgTip;
+	}	
+	
+	/**
 	 * 得到树型对象树
 	 * @param request
 	 * @param response
@@ -222,5 +261,13 @@ public class ObjectsController{
 	
 	public void setEcObjectsDao(EcObjectsDao ecObjectsDao) {
 		this.ecObjectsDao = ecObjectsDao;
+	}
+	
+	public ConfigBean getConfigBean() {
+		return configBean;
+	}
+
+	public void setConfigBean(ConfigBean configBean) {
+		this.configBean = configBean;
 	}
 }

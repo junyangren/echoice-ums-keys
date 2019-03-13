@@ -27,7 +27,8 @@ layui.define(mods, function(exports) {
   Admin.prototype.ready = function(callback) {
     var that = this,
       config = that.config;
-
+    
+    utils.localStorage.clear();
     // 初始化加载方式
     var getItem = utils.localStorage.getItem;
     var setting = getItem("KITADMIN_SETTING_LOADTYPE");

@@ -40,7 +40,7 @@ public class FileUtil {
 		return file;
 	}
 	
-	private static String genFileName(String fileSuffix) {
+	public static String genFileName(String fileSuffix) {
 		int fileIdx=FILE_IDX.incrementAndGet()%1000;
 		String fileIdxStr=String.format("%04d", fileIdx);
 		String fileName=DateFormatUtils.format(new Date(), "yyyyMMddhhmmss")+"-"+fileIdxStr +"."+fileSuffix;

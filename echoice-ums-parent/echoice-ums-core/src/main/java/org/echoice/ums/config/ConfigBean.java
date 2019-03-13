@@ -21,6 +21,8 @@ public class ConfigBean {
 	
 	private String uploadPath="c:\\";
 	
+	private String iconPath="c:\\icon\\";
+	
 	public boolean isAuth() {
 		return auth;
 	}
@@ -93,4 +95,11 @@ public class ConfigBean {
 	public void setUploadPath(String uploadPath) {
 		this.uploadPath = uploadPath;
 	}
+	public String getIconPath() {
+		return iconPath;
+	}
+	public void setIconPath(String iconPath) {
+		this.iconPath = iconPath;
+	}
+	
 }
