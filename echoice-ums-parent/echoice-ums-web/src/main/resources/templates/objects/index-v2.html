@@ -18,7 +18,7 @@
       <div class="layui-row">
         <div class="layui-col-xs12">
           <div class="layui-card">
-            <div class="layui-card-header">权限分配管理-> 角色管理
+            <div class="layui-card-header">资源操作管理-> 资源管理
             </div>
             <div class="layui-card-body">
                 <div class="layui-row">
@@ -47,11 +47,8 @@
   <div class="layui-btn-container">
     <button class="layui-btn layui-btn-sm" lay-event="add"><i class="layui-icon layui-icon-add-1"></i>新增</button>
     <button class="layui-btn layui-btn-sm" lay-event="batchDel"><i class="layui-icon layui-icon-delete"></i>删除</button>
-    <button class="layui-btn layui-btn-sm" lay-event="search"><i class="layui-icon layui-icon-search"></i>查询</button>
-    <button class="layui-btn layui-btn-sm" lay-event="assignRemove"><i class="layui-icon layui-icon-link"></i>分配移除权限</button>
-    <button class="layui-btn layui-btn-sm" lay-event="showPm"><i class="layui-icon layui-icon-auz"></i>查看权限</button>
-    <button class="layui-btn layui-btn-sm" lay-event="assignAppInfos"><i class="layui-icon layui-icon-link"></i>分配应用</button>
-    <button class="layui-btn layui-btn-sm" lay-event="showPmAssignUser"><i class="layui-icon layui-icon-user"></i>授权用户</button>
+    <button class="layui-btn layui-btn-sm" lay-event="search"><i class="layui-icon">&#xe615;</i>查询</button>
+    <button class="layui-btn layui-btn-sm" lay-event="assignRemove"><i class="layui-icon layui-icon-link"></i>分配移除操作</button>
   </div>
 </script>
 
@@ -70,11 +67,12 @@
 
     layui.config({
         base: ecApp.context+'js/'
-    }).use(['jquery','layer', 'form','table','laytpl'], function(){
+    }).use(['jquery','layer', 'form','table','laytpl','upload'], function(){
     var $ = jQuery,
     layer = layui.layer,
     table = layui.table,
     form = layui.form,
+    upload = layui.upload,
     laytpl=layui.laytpl;
 
     var device = layui.device();
@@ -112,9 +110,10 @@
         cols: [
           [ //表头
         	{type:'checkbox',fixed: 'left'}  
-            ,{field: 'roleId',title: 'ID',width: 80,align:'center',sort: false}
+            ,{field: 'objId',title: 'ID',width: 80,align:'center',sort: false}
             ,{field: 'alias',title: '标识',width: 180}
             ,{field: 'name',title: '名称',width: 150,sort: false}
+            ,{field: 'type',title: '类型',width: 120,sort: false}
             ,{field: 'parentName',title: '父名称',width: 150}
             ,{field: 'status',title: '状态',width: 60,align:'center',templet: '#statusTpl'}
             ,{field: 'opTime',title: '操作时间',width: 120,align:'center'},
@@ -140,9 +139,41 @@
                 }else{
                     $('#btnGroup').hide();
                 }
+                $('#uploadTipText').html('');
+            	if(!ecApp.uploadInst){
+                    ecApp.uploadInst = upload.render({
+                        elem : '#iconFile' //绑定元素
+                        ,url : '../objects/fileUpload' //上传接口
+                        ,accept: 'images' //普通文件
+                        ,exts : 'icon|png|jpeg|bmp|jpg'
+                        ,auto : true //选择文件后自动上传
+                        ,before : function(obj) {
+                              //预读本地文件示例，不支持ie8
+                              obj.preview(function(index, file, result){
+                                  $('#uploadTipText').html(file.name);
+                              });
+                            layer.load(); //上传loading
+                        },
+                        done : function(res) {
+                            layer.closeAll('loading'); //关闭loading
+                            layer.alert(res.msg);
+                            //上传完毕回调
+                            if (res.code == 0){
+                                $("#icon").val(res.data.filePath);
+                                return;
+                            } else {
+                                return;
+                            }
+                        },
+                        error : function() {
+                            //请求异常回调
+                            layer.closeAll('loading'); //关闭loading
+                        }
+                    });                     		
+            	}                
                 
                 if(selId){//detail、edit
-                    $.get('./edit?roleId='+selId,function(respData){
+                    $.get('./edit?objId='+selId,function(respData){
                         form.val("ec-edit-form",respData.data);                 
                     });
                 }else{//add
@@ -167,7 +198,7 @@
     	      if(checkStatus.data&&checkStatus.data.length>0){
     	    	  var selRowsIdArr=[];
     	    	  $.each(checkStatus.data,function(index,oneRec){
-    	    		  selRowsIdArr[selRowsIdArr.length]=oneRec.roleId;
+    	    		  selRowsIdArr[selRowsIdArr.length]=oneRec.objId;
     	    	  });
     	    	  
     	    	  ecApp.delRecs(selRowsIdArr);    	    	  
@@ -194,62 +225,30 @@
     	    	
     	    break;
     	    
-            case 'assignRemove':
-                if(checkStatus.data&&checkStatus.data.length>0){
+    	    case 'assignRemove':
+    	    	if(checkStatus.data&&checkStatus.data.length>0){
                     layer.open({
-                        title:'分配移除权限操作',
+                        title:'分配移除资源操作',
                         type: 1,
                         anim: 3,
                         fixed:true,
                         maxmin:true,
                         offset: 'r',
-                        area: ['800px', '100%'],
-                        content: $('#assginPmTp'),
+                        area: ['450px', '100%'],
+                        content: $('#accssModeTableTp'),
                         success: function(layero, index){
                             //加载操作table
-                            var vRoleId='';
+                            var vObjId='';
                             if(checkStatus.data.length==1){
-                            	vRoleId=checkStatus.data[0].roleId;
+                            	vObjId=checkStatus.data[0].objId;
                             }
-                            
-                            if(!ecApp.objectTree){
-                                //加载节点树    
-                                var setting = {
-                                        async: {
-                                            enable: true,
-                                            url:"../objects/tree",
-                                            autoParam:["id", "name"]
-                                        },
-                                        callback : {
-                                            onClick : function(event, treeId, treeNode, clickFlag){
-                                            	ecApp.ztree.objCurrentNode=treeNode;
-                                                var sfJson={};
-                                                var rnd=parseInt(Math.random()*10000);
-                                                sfJson.rnd=rnd;
-                                                sfJson.roleId=vRoleId;
-                                                sfJson.objId=treeNode.id;
-                                                ecApp.accessModeTableIns.reload({where:sfJson});
-                                            },
-                                            onAsyncSuccess:function(event, treeId, treeNode, msg){
-                                                if(treeNode===undefined){
-                                                    var treeObj = $.fn.zTree.getZTreeObj(treeId);
-                                                    var rootNode=treeObj.getNodeByParam("id", -1, null);
-                                                    treeObj.expandNode(rootNode, true, true, true);
-                                                }
-                                            }
-                                        }   
-                                };
-                                
-                                ecApp.objectTree=jQuery.fn.zTree.init($("#objTreeId"), setting);                            	
-                            }
-                            
                             if(!ecApp.accessModeTableIns){
                                 ecApp.accessModeTableIns=table.render({
                                     method: 'post',
                                     limit: 500,
                                     even:true,
                                     elem: '#ecAccssModeTable',
-                                    height: 'full-120',
+                                    height: 'full-130',
                                     done: function () {
                                       //$('#ecgrid_hash').next().css('height','auto');
                                     },request: {
@@ -260,223 +259,40 @@
                                         countName: 'total',
                                         dataName: 'rows'
                                     },
-                                    url: '../operator/findAccessByObjIDAndRoleId',
-                                    where: {roleId:'-1',objId:'-1'},      
+                                    url: '../operator/findAccessByObjID',
+                                    where: {objId:vObjId},		
                                     page: false, //开启分页
                                     cols: [
                                       [ //表头
                                         {type:'checkbox',fixed: 'left'}  
                                         ,{field: 'accssId',title: 'ID',width: 80,align:'center',sort: false}
-                                        ,{field: 'alias',title: '标识',width: 180}
+                                        ,{field: 'alias',title: '标识',width: 150}
                                         ,{field: 'name',title: '名称',width: 150,sort: false}
                                       ]
                                     ]
                                   });
                             }else{
-                            	var sfJson={};
-                                var rnd=parseInt(Math.random()*10000);
-                                sfJson.rnd=rnd;
-                                sfJson.roleId=vRoleId;
-                            	if(ecApp.ztree.objCurrentNode){
-                            		sfJson.objId=ecApp.ztree.objCurrentNode.id;
-                            	}
-                                ecApp.accessModeTableIns.reload({where: sfJson});
+                            	ecApp.accessModeTableIns.reload({where: {'objId':vObjId}});
                             }
                         },
                         cancel: function(index, layero){ 
                             $(this.content).hide();
-                            ecApp.objectTree.destroy();
-                            ecApp.objectTree=null;
                         },
                         btnAlign: 'l',
                         btn: ['分配', '移除'],
                         yes:function(index, layero){
-                            ecApp.assignRolePm(checkStatus,'assign');
-                            return false
+                        	ecApp.assignAccssMode(checkStatus,'assign');
+                        	return false
                         },
                         btn2:function(index, layero){
-                            ecApp.assignRolePm(checkStatus,'remove');
-                            return false
+                        	ecApp.assignAccssMode(checkStatus,'remove');
+                        	return false
                         }
                     });
-                }else{
-                    layer.msg('请选择要操作的记录');
-                }
-            break;
-            
-            case 'showPm':
-                if(checkStatus.data&&checkStatus.data.length==1){
-                    var vWhere={};
-                    var vRoleId=checkStatus.data[0].roleId;
-                    vWhere.roleId=vRoleId;
-                    layer.open({
-                        title:'查看角色权限',
-                        type: 1,
-                        anim: 3,
-                        fixed:true,
-                        maxmin:true,
-                        offset: 'r',
-                        area: ['650px', '100%'],
-                        content: $('#showPmTp'),
-                        success: function(layero, index){
-                            //加载操作table
-                            if(!ecApp.rolePmTableIns){
-                                ecApp.rolePmTableIns=table.render({
-                                    method: 'post',
-                                    limit: 20,
-                                    even:true,
-                                    elem: '#ecShowPmTable',
-                                    height: 'full-100',
-                                    done: function () {
-                                      //$('#ecgrid_hash').next().css('height','auto');
-                                    },request: {
-                                        pageName: 'page',
-                                        limitName: 'rows'
-                                    },
-                                    response: {
-                                        countName: 'total',
-                                        dataName: 'rows'
-                                    },
-                                    url: '../permission/showRolePermission',
-                                    where: vWhere,      
-                                    page: true, //开启分页
-                                    cols: [
-                                      [ //表头
-                                        {type:'numbers',fixed: 'left'}  
-                                        ,{field: 'objId',title: '资源ID',width: 80}
-                                        ,{field: 'objAlias',title: '资源标识',width: 120}
-                                        ,{field: 'objName',title: '资源名称',width:120}
-                                        ,{field: 'accessId',title: '操作ID',width: 80}
-                                        ,{field: 'accessAlias',title: '操作标识',width: 100}
-                                        ,{field: 'accessName',title: '操作名称',width:100}
-                                      ]
-                                    ]
-                                  });
-                            }else{
-                                ecApp.rolePmTableIns.reload({where: vWhere});
-                            }
-                        },
-                        cancel: function(index, layero){ 
-                            $(this.content).hide();
-                        }
-                    });                 
-                }else{
-                    layer.msg('请选择要操作的一条记录');
-                }
-            break;
-            
-            case 'assignAppInfos':
-                if(checkStatus.data&&checkStatus.data.length==1){
-                    var vWhere={};
-                    var vRoleId=checkStatus.data[0].roleId;
-                    vWhere.roleId=vRoleId;
-                    ecApp.assignAppInfoRoleId=vRoleId;
-                    layer.open({
-                        title:'应用授权',
-                        type: 1,
-                        anim: 3,
-                        fixed:true,
-                        maxmin:true,
-                        offset: 'r',
-                        area: ['650px', '100%'],
-                        content: $('#showAssignAppInfoTp'),
-                        success: function(layero, index){
-                            //加载应用列表
-                        	var appinfoC=$('#appinfo-check-c');
-                        	appinfoC.empty();
-                			$.ajax({
-                				   type: "POST",
-                				   dataType:"json",
-                				   url: "../permission/showRoleAssignAppinfo",
-                				   data: {roleId: vRoleId},
-                				   success: function(result){
-                					   var _html="";
-                					   $.each(result,function(index,item){
-                						   _html='<div class="layui-col-md3">';//lay-skin="primary"
-                						   _html=_html+'<input lay-filter="appinfoCheckSel" type="checkbox" name="appinfo" value="'+item.id+'" title="'+item.appName+'"';
-                						   if(item.checked){
-                							   _html=_html+' checked';
-                						   }
-                						   _html=_html+'/></div>';
-                						   console.log(_html);
-                						   appinfoC.append(_html);
-                					   })
-                					   form.render('checkbox', 'ec-assignAppInfo-form');
-                				   },
-                				   complete:function(){
-                					  
-                				   }
-                				});
-                        	
-                        },
-                        cancel: function(index, layero){ 
-                            $(this.content).hide();
-                        }
-                    });                 
-                }else{
-                    layer.msg('请选择要操作的一条记录');
-                }                
-             break;
-            
-            case 'showPmAssignUser':
-                if(checkStatus.data&&checkStatus.data.length==1){
-                    var vWhere={};
-                    var vRoleId=checkStatus.data[0].roleId;
-                    vWhere.roleId=vRoleId;
-                    layer.open({
-                        title:'查看角色授权用户',
-                        type: 1,
-                        anim: 3,
-                        fixed:true,
-                        maxmin:true,
-                        offset: 'r',
-                        area: ['650px', '100%'],
-                        content: $('#showAssignUserTp'),
-                        success: function(layero, index){
-                            //加载操作table
-                            if(!ecApp.roleAssignUserTableIns){
-                                ecApp.roleAssignUserTableIns=table.render({
-                                    method: 'post',
-                                    limit: 20,
-                                    even:true,
-                                    elem: '#ecShowAssignUserTable',
-                                    height: 'full-100',
-                                    done: function () {
-                                      //$('#ecgrid_hash').next().css('height','auto');
-                                    },request: {
-                                        pageName: 'page',
-                                        limitName: 'rows'
-                                    },
-                                    response: {
-                                        countName: 'total',
-                                        dataName: 'rows'
-                                    },
-                                    url: '../permission/showRoleAssignUser',
-                                    where: vWhere,      
-                                    page: true, //开启分页
-                                    cols: [
-                                      [ //表头
-                                        {type:'numbers',fixed: 'left'}  
-                                        ,{field: 'userId',title: 'ID',width: 80}
-                                        ,{field: 'alias',title: '帐号',width: 120}
-                                        ,{field: 'name',title: '姓名',width:120}
-                                      ]
-                                    ]
-                                  });
-                            }else{
-                                ecApp.roleAssignUserTableIns.reload({where: vWhere});
-                            }
-                        },
-                        cancel: function(index, layero){ 
-                            $(this.content).hide();
-                            
-                        }
-                    });                 
-                }else{
-                    layer.msg('请选择要操作的一条记录');
-                }                
-             break;
-            
+    	    	}else{
+    	    		layer.msg('请选择要操作的记录');
+    	    	}
+    	    break;
     	  };
     	});
     
@@ -484,13 +300,13 @@
     table.on('tool(ecTable)', function(obj){
       var data = obj.data;
       if(obj.event === 'detail'){
-    	  ecApp.openForm('查看',false,data.roleId);
+    	  ecApp.openForm('查看',false,data.objId);
       } else if(obj.event === 'del'){
     	  var selRowsIdArr=[];
-          selRowsIdArr[0]=data.roleId;
+          selRowsIdArr[0]=data.objId;
           ecApp.delRecs(selRowsIdArr);
       } else if(obj.event === 'edit'){
-    	  ecApp.openForm('编辑',true,data.roleId); 
+    	  ecApp.openForm('编辑',true,data.objId); 
       }
     });
     
@@ -503,7 +319,7 @@
           if(resp){
         	  layer.msg(resp.msg);
               if(resp.code==0){
-            	  $('input[name="roleId"]').val(resp.data.roleId);
+            	  $('input[name="objId"]').val(resp.data.objId);
             	  ecApp.refreshTreeAndTable();
               }
           }else{
@@ -527,30 +343,6 @@
     $('#continueAdd').click(function(){
     	ecApp.resetForm();
     });
-    
-
-    form.on('checkbox(appinfoCheckSel)', function(data){
-    	console.log(data.value);
-    	console.log(data.elem.checked);
-    	var checkedV=data.elem.checked;
-		$.ajax({
-			   type: "POST",
-			   dataType:"json",
-			   url: "../permission/assignRoleAssignAppinfo",
-			   data: {roleId: ecApp.assignAppInfoRoleId,appId:data.value,checked:data.elem.checked},
-			   success: function(result){
-				  if(checkedV){
-					  layer.msg('应用分配成功！');
-				  }else{
-					  layer.msg('应用移除成功！');
-				  }
-			   },
-			   complete:function(){
-				  
-			   }
-			});    	
-    })
-    
     
 
     //加载节点树    
@@ -665,15 +457,14 @@
     	}
         tableIns.reload({where:vWhere});
     }
-
-    //
-    ecApp.assignRolePm=function(objCheckStatus,opType){
+    
+    ecApp.assignAccssMode=function(objCheckStatus,opType){
         var accssModeCheckStatus = table.checkStatus('ecAccssModeTable'); 
         if(accssModeCheckStatus.data&&accssModeCheckStatus.data.length>0){
-            
+        	
             var selRowsIdArr=[];
             $.each(objCheckStatus.data,function(index,oneRec){
-                selRowsIdArr[selRowsIdArr.length]=oneRec.roleId;
+                selRowsIdArr[selRowsIdArr.length]=oneRec.objId;
             });
             
             var accessModeselRowsIdArr=[];
@@ -681,22 +472,19 @@
                 accessModeselRowsIdArr[accessModeselRowsIdArr.length]=oneRec.accssId;
             });
             
-            var roleIdsStr=JSON.stringify(selRowsIdArr);
+            var objIdsStr=JSON.stringify(selRowsIdArr);
             var accssIdsStr=JSON.stringify(accessModeselRowsIdArr);
 
             var sfJson={};
-            sfJson.roleIds=roleIdsStr;
+            sfJson.objIds=objIdsStr;
             sfJson.accssIds=accssIdsStr;
-            sfJson.objId=ecApp.ztree.objCurrentNode.id;
-            
             var rnd=parseInt(Math.random()*1000000);
             sfJson.rnd=rnd;
-            $.post('../permission/'+opType,sfJson,function(resp){
+            $.post('../operator/'+opType,sfJson,function(resp){
                 layer.alert(resp.msg);
             },"json");
         }
-    }    
-    
+    }
     
 });
 </script>     
@@ -707,7 +495,7 @@
       <div class="layui-form-item">
         <label class="layui-form-label">ID</label>
         <div class="layui-input-inline">
-          <input type="text" name="roleId" readonly="true" placeholder="系统生成" autocomplete="off" class="layui-input">
+          <input type="text" name="objId" readonly="true" placeholder="系统生成" autocomplete="off" class="layui-input">
           <input type="hidden" name="parentId">
         </div>
       </div>
@@ -730,6 +518,24 @@
         </div>
       </div>
       <div class="layui-form-item">
+        <label class="layui-form-label">类型</label>
+        <div class="layui-input-inline">
+          <input type="text" name="type" maxlength="32" required lay-verify="required" placeholder="请输入类型" autocomplete="off" class="layui-input">
+        </div>
+      </div>
+      
+      <div class="layui-form-item">
+        <label class="layui-form-label">图标</label>
+        <div class="layui-input-inline">
+          	<button type="button" class="layui-btn layui-btn-normal" id="iconFile" name="iconFile" >
+                <i class="layui-icon">&#xe67c;</i>上传图标
+            </button>
+            <p style="padding: 0 10px;color: #999" id="uploadTipText"></p>
+            <input type="hidden" id="icon" name="icon" />
+        </div>
+      </div>      
+      
+      <div class="layui-form-item">
         <label class="layui-form-label">状态</label>
         <div class="layui-input-inline">
           <select name="status" lay-verify="required">
@@ -748,6 +554,21 @@
         <label class="layui-form-label">备注</label>
         <div class="layui-input-block">
           <textarea name="note" placeholder="请输入备注" class="layui-textarea"></textarea>
+          <p>应用地址</p>
+        </div>
+      </div>      
+      <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">备注2</label>
+        <div class="layui-input-block">
+          <textarea name="note2" placeholder="请输入备注" class="layui-textarea"></textarea>
+          <p>BS应用打开浏览器(IE/Chrome/360/liebao/qqBrowser/sogouBrowser)</p>
+        </div>
+      </div>
+      <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">备注3</label>
+        <div class="layui-input-block">
+          <textarea name="note3" placeholder="请输入备注" class="layui-textarea"></textarea>
+          <p>CS应用系统路径多个地址以英文分号隔开</p>
         </div>
       </div>
       <div class="layui-form-item" id="btnGroup">
@@ -776,6 +597,12 @@
         </div>
       </div>
       <div class="layui-form-item">
+        <label class="layui-form-label">类型</label>
+        <div class="layui-input-inline">
+          <input type="text" name="type" maxlength="32" placeholder="请输入类型" autocomplete="off" class="layui-input">
+        </div>
+      </div>
+      <div class="layui-form-item">
         <label class="layui-form-label">状态</label>
         <div class="layui-input-inline">
           <select name="status">
@@ -795,38 +622,9 @@
    </div> 
  </div>
  
- <div id="assginPmTp" style="display:none;">
-   <div class="layui-row">
-    <div class="layui-col-xs4" style="max-height:400px;overflow: auto">
-      <ul id="objTreeId" class="ztree"></ul>
-    </div>
-    <div class="layui-col-xs8">          
-      <table id="ecAccssModeTable" lay-filter="ecAccssModeTable"></table>                
-    </div>
-  </div>     
- </div>
- 
- <div id="showPmTp" style="display:none;">
-    <div style="padding: 0 12px;">
-        <table id="ecShowPmTable" lay-filter="ecShowPmTable"></table>
-    </div>       
- </div> 
-
- <div id="showAssignUserTp" style="display:none;">
-    <div style="padding: 0 12px;">
-        <table id="ecShowAssignUserTable" lay-filter="ecShowAssignUserTable"></table>
-    </div>       
- </div>
- 
-  <div id="showAssignAppInfoTp" style="display:none;">
-    <div style="padding: 0 12px;">
-        <form id="ec-assignAppInfo-form" class="layui-form" lay-filter="ec-assignAppInfo-form" action="">
-		  <div class="layui-form-item">
-		  		<div class="layui-row" id="appinfo-check-c"></div>
-		  </div>
-        </form>
-    </div>       
- </div>
- 
-   
+ <div id="accssModeTableTp" style="display:none;">
+ <div style="padding: 0 12px;">
+     <table id="ecAccssModeTable" lay-filter="ecAccssModeTable"></table>
+ </div>    
+ </div>  
 </html>

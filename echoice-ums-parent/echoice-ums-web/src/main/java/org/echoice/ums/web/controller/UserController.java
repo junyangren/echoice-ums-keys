@@ -126,6 +126,7 @@ public class UserController {
 			EcUser dbUser=list.get(0);
 			if(ecUser.getUserId()==null||(ecUser.getUserId().compareTo(dbUser.getUserId())!=0)){
 				msgTip.setMsg("对不起，用户登入名"+ecUser.getAlias()+"已经存在，请换一个");
+				msgTip.setCode(4002);
 			}
 		}
 		

@@ -2,6 +2,7 @@ package org.echoice.ums.dao;
 
 import java.util.List;
 
+import org.echoice.ums.domain.AppInfo;
 import org.echoice.ums.domain.EcAccssMode;
 import org.echoice.ums.domain.EcGroup;
 import org.echoice.ums.domain.EcObjects;
@@ -215,5 +216,10 @@ public interface UmsClientDao {
 	 */
 	public List<EcObjects> findObjectsByType(String type);
 
-	
+	/**
+	 * 查看用户分配的应用列表
+	 * @param userAlias
+	 * @return
+	 */
+	public List<AppInfo> findAssignApplist(String userAlias);
 }

@@ -214,7 +214,12 @@ layui.define(mods, function(exports) {
             component: '../console/cakeyOrder/report',
             name: 'Key资产统计',
             iframe:true
-         }]
+         },{
+             path: '/console/appinfo/index',
+             component: '../console/appinfo/index',
+             name: '应用管理',
+             iframe:true
+          }]
       };
       
       if (config.loadType === 'TABS') {
@@ -235,6 +240,22 @@ layui.define(mods, function(exports) {
     },
     addTab: function(href, layid) {
       var r = route.getRoute(href);
+      if(!r){
+    	  //动态注册路由
+    	  var croutes=route.getRoutes();
+    	  var routeObj = layui.router(href);
+    	  var pathV=routeObj.href.split('?')[0];
+    	  var componentV=ecApp.context+pathV.substr(1);
+    	  var nameV=name;
+    	  if(!nameV){//针对左侧菜单名字获取
+    		  var parentObj=$('a[href="'+href+'"]');
+    		  nameV=$('span',parentObj).text();
+    		  console.log(nameV);
+    	  }
+    	  r={path:pathV,component:componentV,name: nameV,iframe: true};
+    	  croutes[croutes.length]=r;
+    	  route.setRoutes({routes:croutes});
+      }      
       if (r) {
         tabs.add({
           id: layid,
@@ -288,6 +309,11 @@ layui.define(mods, function(exports) {
     }
   }
 
+  ecApp.addTab=function(href, layid, name){
+	  tabs.remove(layid);
+	  _private.addTab(href,layid,name);
+  }
+  
   var admin = new Admin();
   admin.ready(function() {
     console.log('Init successed.');

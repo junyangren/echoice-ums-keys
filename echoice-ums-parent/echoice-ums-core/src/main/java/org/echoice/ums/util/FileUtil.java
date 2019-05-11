@@ -14,14 +14,38 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 
 public class FileUtil {
-
+	private static final String SEPARATOR="/";
 	private static final AtomicInteger FILE_IDX=new AtomicInteger(0);
 	public static String saveFile(String originalFilename,String saveBasePath, InputStream in) throws IOException {
 		String fileSuffix=StringUtils.substringAfterLast(originalFilename, ".");
 		String fold=genFold();
 		String fileName=genFileName(fileSuffix);
-		String filePath = saveBasePath+File.separator +fold+File.separator+fileName ;
+		String filePath = saveBasePath+SEPARATOR +fold+SEPARATOR+fileName ;
 		
+		File file=new File(filePath);
+		FileUtils.forceMkdirParent(file);
+		OutputStream out = new FileOutputStream(filePath);
+		IOUtils.copy(in, out);
+		in.close();
+		out.close();
+		return filePath;
+	}
+	
+	public static String saveFile2(String fileSuffix,String saveBasePath, InputStream in) throws IOException {
+		String fold=genFold();
+		String fileName=genFileName(fileSuffix);
+		String filePath = saveBasePath+SEPARATOR +fold+SEPARATOR+fileName ;
+		
+		File file=new File(filePath);
+		FileUtils.forceMkdirParent(file);
+		OutputStream out = new FileOutputStream(filePath);
+		IOUtils.copy(in, out);
+		in.close();
+		out.close();
+		return filePath;
+	}
+	
+	public static String saveFile(String filePath, InputStream in) throws IOException {
 		File file=new File(filePath);
 		FileUtils.forceMkdirParent(file);
 		OutputStream out = new FileOutputStream(filePath);
@@ -34,7 +58,7 @@ public class FileUtil {
 	public static File genFilePath(String saveBasePath,String fileSuffix) throws IOException{
 		String fold=genFold();
 		String fileName=genFileName(fileSuffix);
-		String filePath = saveBasePath+File.separator +fold+File.separator+fileName ;
+		String filePath = saveBasePath+SEPARATOR +fold+SEPARATOR+fileName ;
 		File file=new File(filePath);
 		FileUtils.forceMkdirParent(file);
 		return file;
@@ -49,7 +73,7 @@ public class FileUtil {
 	
 	private static String genFold() {
 		Date now=new Date();
-		String foldPattern="yyyy"+File.separator+"MM"+File.separator+"dd";
+		String foldPattern="yyyy"+SEPARATOR+"MM"+SEPARATOR+"dd";
 		String fold=DateFormatUtils.format(now, foldPattern);
 		return fold;
 	}

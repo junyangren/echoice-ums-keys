@@ -7,10 +7,12 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.echoice.modules.encrypt.MD5;
 import org.echoice.ums.dao.UmsClientDao;
+import org.echoice.ums.dao.mapper.RowMapperForAppInfo;
 import org.echoice.ums.dao.mapper.RowMapperForGroup;
 import org.echoice.ums.dao.mapper.RowMapperForObjects;
 import org.echoice.ums.dao.mapper.RowMapperForUser;
 import org.echoice.ums.dao.mapper.RowMapperForUserExtend;
+import org.echoice.ums.domain.AppInfo;
 import org.echoice.ums.domain.EcAccssMode;
 import org.echoice.ums.domain.EcGroup;
 import org.echoice.ums.domain.EcObjects;
@@ -22,6 +24,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
 
 @Transactional(propagation=Propagation.NOT_SUPPORTED,readOnly=true)
 public class UmsClientDaoImpl implements UmsClientDao{
@@ -140,6 +143,7 @@ public class UmsClientDaoImpl implements UmsClientDao{
 		
 		String sql="select count(*) from ec_user t2 where t2.alias=? and t2.password=?";
 		int count=getJdbcTemplate().queryForObject(sql, new Object[]{alias,oldPasswordStr},Integer.class);
+		
 		if(count>0){
 			String newPasswordStr=alias+newPassword;
 			newPasswordStr=md5.getMD5ofStr(newPasswordStr);
@@ -475,7 +479,16 @@ public class UmsClientDaoImpl implements UmsClientDao{
 		}
 		return null;
 	}
-
+	
+	
+	public List<AppInfo> findAssignApplist(String userAlias){
+		String sql="select t3.id,t3.app_id,t3.app_key,t3.app_name,t3.app_type,t3.icon_path,t3.taxis,t3.app_paths,"
+				+ "t3.browser_types,t3.app_url,t3.status,t3.note" 
+			    +" from ec_users_assignmen t1,ec_role_appinfo t2,ec_app_info t3,ec_user t4"
+				+" where t1.role_id=t2.role_id and t2.app_id=t3.id and t1.user_id=t4.user_id and t4.alias=?";
+		List<AppInfo> list=getJdbcTemplate().query(sql, new Object[]{userAlias},new RowMapperForAppInfo());
+		return list;
+	}
 	public JdbcTemplate getJdbcTemplate() {
 		return jdbcTemplate;
 	}

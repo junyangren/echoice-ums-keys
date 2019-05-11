@@ -19,9 +19,17 @@ public class ConfigBean {
 	private Map<String,String> urlToObjMap;
 	private Map<String,String> objAccessModeMap;
 	
-	private String uploadPath="c:\\";
+	private String uploadPath="c:/";
 	
-	private String iconPath="c:\\icon\\";
+	private String iconPath="c:/icon/";
+	
+	private String faceImagePath="c:/icon/";
+	
+	private String fingerprintPath="c:/icon/";
+	
+	private String serverPrefix="http://localhost:8081/";
+	
+	private String casUrlPrefix;
 	
 	public boolean isAuth() {
 		return auth;
@@ -101,5 +109,28 @@ public class ConfigBean {
 	public void setIconPath(String iconPath) {
 		this.iconPath = iconPath;
 	}
-	
+	public String getServerPrefix() {
+		return serverPrefix;
+	}
+	public void setServerPrefix(String serverPrefix) {
+		this.serverPrefix = serverPrefix;
+	}
+	public String getCasUrlPrefix() {
+		return casUrlPrefix;
+	}
+	public void setCasUrlPrefix(String casUrlPrefix) {
+		this.casUrlPrefix = casUrlPrefix;
+	}
+	public String getFaceImagePath() {
+		return faceImagePath;
+	}
+	public void setFaceImagePath(String faceImagePath) {
+		this.faceImagePath = faceImagePath;
+	}
+	public String getFingerprintPath() {
+		return fingerprintPath;
+	}
+	public void setFingerprintPath(String fingerprintPath) {
+		this.fingerprintPath = fingerprintPath;
+	}	
 }

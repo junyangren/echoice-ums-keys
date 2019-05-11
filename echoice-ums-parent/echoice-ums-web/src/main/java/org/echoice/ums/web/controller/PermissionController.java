@@ -1,5 +1,6 @@
 package org.echoice.ums.web.controller;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -7,13 +8,18 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.echoice.modules.web.json.ExtJsUtil;
 import org.echoice.modules.web.paper.PageBean;
+import org.echoice.ums.dao.AppInfoDao;
 import org.echoice.ums.dao.EcPermissionDao;
+import org.echoice.ums.dao.RoleAppinfoDao;
+import org.echoice.ums.domain.AppInfo;
+import org.echoice.ums.domain.RoleAppinfo;
 import org.echoice.ums.util.JSONUtil;
 import org.echoice.ums.web.view.GroupPermissionView;
 import org.echoice.ums.web.view.MsgTipExt;
 import org.echoice.ums.web.view.PermissionView;
 import org.echoice.ums.web.view.UserPermissionView;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,6 +37,12 @@ public class PermissionController extends UmsBaseController {
 	
 	@Autowired
 	private EcPermissionDao ecPermissionDao;
+	
+	@Autowired
+	private AppInfoDao appInfoDao;
+	
+	@Autowired
+	private RoleAppinfoDao roleAppinfoDao;
 
 	/**
 	 * 分配角色中的对象+操作权限
@@ -214,6 +226,46 @@ public class PermissionController extends UmsBaseController {
 		String respStr=JSONUtil.toJSONString(msgTip);
 		return respStr;
 	}
+	
+	
+	@RequestMapping(value="showRoleAssignAppinfo",produces=MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ResponseBody
+	public String showRoleAssignAppinfo(HttpServletRequest request,
+			HttpServletResponse response) throws Exception {
+		// TODO Auto-generated method stub
+		String roleId=request.getParameter("roleId");
+		List<AppInfo> appInfoList=appInfoDao.findAll(new Sort(new Sort.Order(Sort.Direction.ASC,"appType"),new Sort.Order(Sort.Direction.ASC,"taxis")));
+		List<RoleAppinfo> roleAppinfos=roleAppinfoDao.findByRoleId(Long.valueOf(roleId));
+		for (AppInfo appInfo : appInfoList) {
+			for (RoleAppinfo roleAppinfo : roleAppinfos) {
+				if(appInfo.getId()==roleAppinfo.getAppId()) {
+					appInfo.setChecked(true);
+					break;
+				}
+			}
+		}
+		String respStr = JSON.toJSONString(appInfoList);
+		return respStr;
+	}
+	
+	
+	@RequestMapping(value="assignRoleAssignAppinfo",produces=MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ResponseBody
+	public String assignRoleAssignAppinfo(Long roleId,Long appId,Boolean checked,HttpServletRequest request,HttpServletResponse response) throws Exception {
+		// TODO Auto-generated method stub
+		MsgTipExt msgTip=new MsgTipExt();
+		if(checked) {
+			RoleAppinfo roleAppinfo=new RoleAppinfo();
+			roleAppinfo.setAppId(appId);
+			roleAppinfo.setRoleId(roleId);
+			roleAppinfo.setOpTime(new Date());
+			this.roleAppinfoDao.save(roleAppinfo);
+		}else {
+			this.roleAppinfoDao.delete(roleId,appId);
+		}
+		String respStr=JSON.toJSONString(msgTip);
+		return respStr;
+	}	
 	
 	public EcPermissionDao getEcPermissionDao() {
 		return ecPermissionDao;

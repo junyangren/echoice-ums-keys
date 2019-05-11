@@ -56,6 +56,9 @@ public class EcUser implements java.io.Serializable {
 	private String idcard;
 	private String type;//用户类型
 	
+	private String faceImg;
+	private String fingerprint;
+	
 	private List<EcGroup> groupList=new ArrayList<EcGroup>();  
 	private Set<EcUserGroup> ecUserGroups = new HashSet<EcUserGroup>(0);
 	private Set<EcUsersAssignmen> ecUsersAssignmens = new HashSet<EcUsersAssignmen>(
@@ -283,6 +286,24 @@ public class EcUser implements java.io.Serializable {
 
 	public void setType(String type) {
 		this.type = type;
+	}
+
+	@Column(name = "face_img")
+	public String getFaceImg() {
+		return faceImg;
+	}
+
+	public void setFaceImg(String faceImg) {
+		this.faceImg = faceImg;
+	}
+
+	@Column(name = "fingerprint")
+	public String getFingerprint() {
+		return fingerprint;
+	}
+
+	public void setFingerprint(String fingerprint) {
+		this.fingerprint = fingerprint;
 	}
 	
 	
